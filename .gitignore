@@ -1,0 +1,111 @@
+# ==============================
+
+# Node.js / Express
+
+# ==============================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Logs
+
+logs
+*.log
+
+# Runtime data
+
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+
+coverage/
+
+# ==============================
+
+# React
+
+# ==============================
+
+build/
+dist/
+
+# React env files
+
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==============================
+
+# OS / Editor
+
+# ==============================
+
+.DS_Store
+Thumbs.db
+
+# VS Code
+
+.vscode/
+!.vscode/extensions.json
+
+# IntelliJ / WebStorm
+
+.idea/
+
+# ==============================
+
+# Git
+
+# ==============================
+
+*.orig
+
+# ==============================
+
+# Database
+
+# ==============================
+
+*.sqlite
+*.sqlite3
+
+# ==============================
+
+# Optional: Docker
+
+# ==============================
+
+.dockerignore
+
+# ==============================
+
+# Optional: Build tools
+
+# ==============================
+
+.cache/
+.eslintcache
+
+# ==============================
+
+# Optional: Tests
+
+# ==============================
+
+.cypress/videos/
+.cypress/screenshots/
