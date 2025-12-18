@@ -1,11 +1,11 @@
 {
   "name": "lms-backend",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "src/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app.js",
-    "start": "node app.js"
+    "dev": "nodemon src/app.js",
+    "start": "node src/app.js"
   },
   "author": "",
   "license": "ISC",
@@ -16,8 +16,10 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "pg": "^8.16.3",
-    "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.7"
+    "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.0.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0"
   }
 }
