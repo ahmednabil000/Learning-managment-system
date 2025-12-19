@@ -1,21 +1,29 @@
 const mongoose = require("mongoose");
 
-const courseSectionSchema = new mongoose.Schema({
+const courseSectionSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      default: uuidv4(),
+    },
     title: String,
     course: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Course",
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+      required: true,
     },
-    videos: [{
+    videos: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "CourseVideo"
-    }]
-    ,
+        ref: "CourseVideo",
+      },
+    ],
     order: Number,
     duration: Number,
-}, {
-    timestamps: true
-})
+  },
+  {
+    timestamps: true,
+  }
+);
 
 module.exports = mongoose.model("CourseSection", courseSectionSchema);

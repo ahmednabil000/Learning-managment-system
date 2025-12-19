@@ -5,13 +5,11 @@
 ```json
 ## success
 {
-    status: "success",
     data: any
 }
 
 ## error
 {
-    status: "error",
     message: string
 }
 ```
@@ -21,7 +19,6 @@
 ```json
 ## success
 {
-    status: "success",
     data: [
         any
     ],
@@ -37,7 +34,6 @@
 
 ## error
 {
-    status: "error",
     message: string
 }
 ```
