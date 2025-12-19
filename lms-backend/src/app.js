@@ -12,8 +12,10 @@ app.use(passport.initialize());
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/tracks", require("./routes/tracksRoutes"));
 app.use("/courses", require("./routes/courseRoutes"));
+app.use("/lectures", require("./routes/lectureRoutes"));
+app.use("/lessons", require("./routes/lessonRoutes"));
 
- mongoose
+mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("Connected to MongoDB");

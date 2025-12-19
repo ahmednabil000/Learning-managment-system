@@ -19,7 +19,6 @@ const lectureSchema = new mongoose.Schema(
       },
     ],
     order: Number,
-    duration: Number,
   },
   {
     timestamps: true,

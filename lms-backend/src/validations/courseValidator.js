@@ -9,15 +9,3 @@ const courseValidator = joi.object({
 });
 
 module.exports = courseValidator;
-//   title: String,
-//     description: String,
-//     price: Number,
-//     imageUrl: String,
-//     instructor: {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: "Instructor",
-//         required: true
-//     },
-//     rating: Number,
-//     reviews: Number,
-//     students: Number,

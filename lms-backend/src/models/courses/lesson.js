@@ -12,7 +12,7 @@ const lessonSchema = new mongoose.Schema(
       ref: "Lecture",
       required: true,
     },
-    url: String,
+    videoUrl: String,
     order: Number,
     duration: Number,
   },

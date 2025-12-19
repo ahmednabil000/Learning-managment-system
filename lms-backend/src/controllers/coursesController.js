@@ -39,35 +39,46 @@ exports.getCourses = async (req, res) => {
   }
 };
 
-exports.updateCourseById = async (req, res) => {
+exports.createCourse = async (req, res) => {
   try {
-    const { title, description, price, imageUrl } = req.params;
+    const { title, description, price, imageUrl } =
+      await courseValidator.validateAsync(req.body);
 
-    const validationData = await courseValidator.validateAsync({
+    const course = await courseService.createCourse({
       title,
       description,
       price,
       imageUrl,
     });
-    const course = await courseService.updateCourseById(
-      req.params.id,
-      validationData
-    );
+    res.status(201).json(course);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateCourseById = async (req, res) => {
+  try {
+    const { title, description, price, imageUrl } =
+      await courseValidator.validateAsync(req.body);
+
+    const course = await courseService.updateCourse({
+      id: req.params.id,
+      title,
+      description,
+      price,
+      imageUrl,
+    });
     res.json(course);
   } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
 exports.deleteCourseById = async (req, res) => {
   try {
-    const course = await courseService.deleteCourseById(req.params.id);
+    const course = await courseService.deleteCourse(req.params.id);
     res.json(course);
   } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
