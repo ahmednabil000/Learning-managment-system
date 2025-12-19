@@ -1,18 +1,23 @@
 const mongoose = require("mongoose");
 
-const courseVideoSchema = new mongoose.Schema(
+const lectureSchema = new mongoose.Schema(
   {
     _id: {
       type: String,
       default: uuidv4(),
     },
     title: String,
-    courseSection: {
+    course: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "CourseSection",
+      ref: "Course",
       required: true,
     },
-    url: String,
+    lessons: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Lesson",
+      },
+    ],
     order: Number,
     duration: Number,
   },
@@ -21,4 +26,4 @@ const courseVideoSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("CourseVideo", courseVideoSchema);
+module.exports = mongoose.model("Lecture", lectureSchema);
