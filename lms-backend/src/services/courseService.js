@@ -1,5 +1,5 @@
 const { Course } = require("../models");
-const courseValidation = require("../validations/courseValidator");
+const courseValidation = require("../validations/courses/courseValidator");
 
 exports.getCourseById = async (id) => {
   const course = await Course.findById(id);

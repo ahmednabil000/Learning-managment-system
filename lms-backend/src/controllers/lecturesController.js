@@ -1,5 +1,5 @@
 const lectureService = require("../services/lectureService");
-const lectureValidator = require("../validations/lectureValidator");
+const lectureValidator = require("../validations/courses/lectureValidator");
 const paginationValidator = require("../validations/paginationValidator");
 
 module.exports.createLecture = async (req, res) => {

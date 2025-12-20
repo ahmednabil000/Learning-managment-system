@@ -1,6 +1,6 @@
 const courseService = require("../services/courseService");
 const paginationValidator = require("../validations/paginationValidator");
-const courseValidator = require("../validations/courseValidator");
+const courseValidator = require("../validations/courses/courseValidator");
 
 exports.getCourseById = async (req, res) => {
   try {

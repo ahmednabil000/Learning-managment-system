@@ -14,6 +14,12 @@ app.use("/tracks", require("./routes/tracksRoutes"));
 app.use("/courses", require("./routes/courseRoutes"));
 app.use("/lectures", require("./routes/lectureRoutes"));
 app.use("/lessons", require("./routes/lessonRoutes"));
+app.use("/assignments", require("./routes/assignmentRoutes"));
+app.use("/questions", require("./routes/questionRoutes"));
+app.use("/answers", require("./routes/answerRoutes"));
+app.use("/exam-attempts", require("./routes/examAttemptRoutes"));
+app.use("/assignment-attempts", require("./routes/assignmentAttemptRoutes"));
+app.use("/exams", require("./routes/examRoutes"));
 
 mongoose
   .connect(process.env.MONGO_URI)
