@@ -1,0 +1,133 @@
+{
+  "navbar": {
+    "home": "Home",
+    "courses": "Courses",
+    "tracks": "Tracks",
+    "about": "About",
+    "login": "Log in",
+    "signup": "Sign up"
+  },
+  "hero": {
+    "title": "Unlock Your Potential with",
+    "subtitle": "Join thousands of learners worldwide. Master new skills, advance your career, and explore your passions with our expert-led courses.",
+    "explore": "Explore Courses",
+    "join": "Join for Free",
+    "stats": {
+      "students": "Students",
+      "courses": "Courses",
+      "instructors": "Instructors"
+    }
+  },
+  "features": {
+    "title": "Why Choose EduSphere?",
+    "subtitle": "We provide a comprehensive learning experience designed to help you achieve your goals.",
+    "items": {
+      "instructors": {
+        "title": "Expert Instructors",
+        "description": "Learn from industry experts who are passionate about teaching and helping you succeed."
+      },
+      "career": {
+        "title": "Career Growth",
+        "description": "Gain skills that are in high demand and take your career to the next level."
+      },
+      "interactive": {
+        "title": "Interactive Learning",
+        "description": "Engage with hands-on projects, quizzes, and peer reviews to reinforce your learning."
+      },
+      "schedule": {
+        "title": "Flexible Schedule",
+        "description": "Learn at your own pace, anytime, anywhere, on any device."
+      }
+    }
+  },
+  "courses": {
+    "title": "Popular Courses",
+    "subtitle": "Explore our highest-rated courses.",
+    "view_all": "View All Courses",
+    "all_courses": "All Courses",
+    "browse_subtitle": "Browse through our extensive library of expert-led courses.",
+    "search_placeholder": "Search courses...",
+    "showing": "Showing",
+    "results": "results",
+    "no_results": "No courses found matching your search.",
+    "clear_search": "Clear Search",
+    "enroll_now": "Enroll Now",
+    "enroll_success": "Successfully enrolled in",
+    "students": "students",
+    "rating": "Rating"
+  },
+  "common": {
+    "loading": "Loading..."
+  },
+  "tracks": {
+    "title": "Learning Tracks",
+    "subtitle": "Structured learning paths to guide you from beginner to expert in your chosen field.",
+    "duration": "months",
+    "courses_count": "Courses",
+    "view_track": "View Track",
+    "items": {
+      "web_dev": {
+        "title": "Full Stack Web Development",
+        "description": "Master both frontend and backend technologies to become a complete developer."
+      },
+      "data_science": {
+        "title": "Data Science Specialization",
+        "description": "Learn to analyze data, build machine learning models, and make data-driven decisions."
+      }
+    }
+  },
+  "testimonials": {
+    "title": "What Our Students Say",
+    "subtitle": "Don't just take our word for it. Hear from our community of learners."
+  },
+  "stats": {
+    "students": "Active Students",
+    "courses": "Total Courses",
+    "instructors": "Expert Instructors",
+    "satisfaction": "Satisfaction Rate"
+  },
+  "cta": {
+    "title": "Ready to Start Your Learning Journey?",
+    "subtitle": "Join EduSphere today and get unlimited access to top-quality courses. Start learning for free!",
+    "get_started": "Get Started for Free",
+    "browse": "Browse Courses"
+  },
+
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to access your courses and continue learning.",
+    "email": "Email address",
+    "password": "Password",
+    "remember": "Remember me",
+    "forgot": "Forgot your password?",
+    "submit": "Sign in",
+    "or": "Or continue with",
+    "signup_prompt": "Don't have an account?",
+    "signup_link": "Sign up"
+  },
+  "signup": {
+    "title": "Create Account",
+    "subtitle": "Join EduSphere and start your learning journey today.",
+    "name": "Full Name",
+    "email": "Email address",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "terms": "I agree to the Terms of Service and Privacy Policy",
+    "submit": "Create Account",
+    "or": "Or sign up with",
+    "login_prompt": "Already have an account?",
+    "login_link": "Log in"
+  },
+  "footer": {
+    "about": "Empowering learners worldwide with high-quality courses, expert instructors, and a supportive community.",
+    "platform": "Platform",
+    "resources": "Resources",
+    "stay_updated": "Stay Updated",
+    "subscribe": "Subscribe",
+    "rights": "All rights reserved.",
+    "newsletter_description": "Subscribe to our newsletter for the latest course updates and offers.",
+    "email_placeholder": "Enter your email",
+    "privacy_policy": "Privacy Policy",
+    "terms_of_service": "Terms of Service"
+  }
+}
