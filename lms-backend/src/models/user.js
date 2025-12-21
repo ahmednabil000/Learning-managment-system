@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const { v4: uuidv4 } = require("uuid");
 const baseOptions = {
   discriminatorKey: "role",
   timestamps: true,
@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
   {
     _id: {
       type: String,
-      default: uuidv4(),
+      default: uuidv4,
     },
     name: String,
     email: {
@@ -30,20 +30,7 @@ const userSchema = new mongoose.Schema(
 const User = mongoose.model("User", userSchema);
 
 // Instructor Discriminator
-const instructorSchema = new mongoose.Schema({
-  rating: {
-    type: Number,
-    default: 0,
-  },
-  reviews: {
-    type: Number,
-    default: 0,
-  },
-  students: {
-    type: Number,
-    default: 0,
-  },
-});
+const instructorSchema = new mongoose.Schema({});
 const Instructor = User.discriminator("Instructor", instructorSchema);
 
 // Student Discriminator

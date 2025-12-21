@@ -16,15 +16,22 @@ exports.getCourseById = async (req, res) => {
 
 exports.getCourses = async (req, res) => {
   try {
-    const { page, pageCount, search } = await paginationValidator.validateAsync(
-      req.query
-    );
+    const { page, pageCount, search } =
+      await paginationValidator.validateAsync(req.query);
 
     const { courses, totalItems, totalPages } =
       await courseService.getAllCourses(page, pageCount, search);
 
+    const shortCourses = courses.map((course) => ({
+      _id: course._id,
+      title: course.title,
+      description: course.description,
+      price: course.price,
+      imageUrl: course.imageUrl,
+    }));
+
     res.json({
-      courses,
+      shortCourses,
       page,
       pageCount,
       totalItems,

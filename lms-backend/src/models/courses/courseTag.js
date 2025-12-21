@@ -1,0 +1,13 @@
+const mongoose = require("mongoose");
+const { v4: uuid4 } = require("uuid");
+
+const courseTagSchema = new mongoose.Schema({
+  _id: {
+    type: String,
+    default: uuid4,
+  },
+  name: String,
+  description: String,
+});
+
+module.exports = mongoose.model("CourseTag", courseTagSchema);

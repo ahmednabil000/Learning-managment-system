@@ -1,8 +1,36 @@
-const { Course } = require("../models");
+const { Course, Lecture, Lesson } = require("../models");
 const courseValidation = require("../validations/courses/courseValidator");
 
 exports.getCourseById = async (id) => {
-  const course = await Course.findById(id);
+  const course = await Course.findById(id)
+    .populate("tag")
+    .populate("instructor")
+    .lean();
+
+  if (!course) {
+    return null;
+  }
+
+  const lectures = await Lecture.find({ course: course._id })
+    .sort({ order: 1 })
+    .lean();
+  const lectureIds = lectures.map((lecture) => lecture._id);
+
+  const lessons = await Lesson.find({ lecture: { $in: lectureIds } })
+    .sort({ order: 1 })
+    .lean();
+
+  const lecturesWithLessons = lectures.map((lecture) => {
+    return {
+      ...lecture,
+      lessons: lessons.filter(
+        (lesson) => lesson.lecture.toString() === lecture._id.toString()
+      ),
+    };
+  });
+
+  course.lectures = lecturesWithLessons;
+
   return course;
 };
 
@@ -11,7 +39,9 @@ exports.getAllCourses = async (page, pageCount, search) => {
     title: { $regex: search, $options: "i" },
   })
     .skip((page - 1) * pageCount)
-    .limit(pageCount);
+    .limit(pageCount)
+    .populate("instructor")
+    .populate("tag");
 
   const totalItems = await Course.countDocuments({
     title: { $regex: search, $options: "i" },

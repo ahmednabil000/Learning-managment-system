@@ -1,7 +1,7 @@
 const trackService = require("../services/trackService");
 const paginationValidator = require("../validations/paginationValidator");
 const trackValidator = require("../validations/courses/trackValidator");
-const error = require("joi/lib/error");
+
 
 exports.getTrackById = async (req, res) => {
   try {

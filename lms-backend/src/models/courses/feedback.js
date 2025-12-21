@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
-
+const { v4: uuidv4 } = require("uuid");
 const feedbackSchema = mongoose.Schema(
   {
     _id: {
       type: String,
-      default: uuidv4(),
+      default: uuidv4,
     },
     body: String,
     student: {

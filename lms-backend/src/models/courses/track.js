@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
 
 const trackSchema = new mongoose.Schema(
   {
     _id: {
       type: String,
-      default: uuidv4(),
+      default: uuidv4,
     },
     title: String,
     description: String,
