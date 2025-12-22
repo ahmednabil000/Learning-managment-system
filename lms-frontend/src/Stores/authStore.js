@@ -2,12 +2,12 @@ import { create } from "zustand";
 import getTokenData from "../utils/getTokenData";
 
 const useAuthStore = create((set) => ({
-  token: localStorage.getItem("token") || null,
-  isAuthenticated: !!localStorage.getItem("token"),
+  token: localStorage.getItem("authToken") || null,
+  isAuthenticated: localStorage.getItem("authToken") ? true : false,
   user: getTokenData(),
 
   setToken: (token) => {
-    localStorage.setItem("token", token);
+    localStorage.setItem("authToken", token);
     set({
       token,
       isAuthenticated: true,
@@ -16,7 +16,7 @@ const useAuthStore = create((set) => ({
   },
 
   clearToken: () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("authToken");
     set({
       token: null,
       isAuthenticated: false,

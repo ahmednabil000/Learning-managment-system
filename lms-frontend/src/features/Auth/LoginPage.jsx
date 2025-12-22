@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import Button from "../../shared/components/Button";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
@@ -6,12 +6,15 @@ import { useForm } from "react-hook-form";
 import InputError from "../../shared/components/InputError";
 
 const LoginPage = () => {
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({ mode: "onChange" });
+  const callback = searchParams.get("callback");
+  const state = callback ? encodeURIComponent(callback) : "";
 
   const onSubmit = (data) => {
     console.log(data);
@@ -19,7 +22,10 @@ const LoginPage = () => {
   };
 
   const loginWithGoogle = () => {
-    window.open(`${import.meta.env.VITE_API_URL}/auth/google`, "_self");
+    window.open(
+      `${import.meta.env.VITE_API_URL}/auth/google?state=${state}`,
+      "_self"
+    );
   };
 
   return (

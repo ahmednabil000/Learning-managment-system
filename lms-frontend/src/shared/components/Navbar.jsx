@@ -1,16 +1,17 @@
-import { Link, useNavigate } from "react-router-dom";
-import Button from "./Button";
 import { useState } from "react";
-import { HiMenu, HiX } from "react-icons/hi";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { HiMenu, HiX } from "react-icons/hi";
+import Button from "./Button";
 import useAuthStore from "../../Stores/authStore";
+import UserDropdown from "./UserDropdown";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
-  const { isAuthenticated, user, clearToken } = useAuthStore();
+  const { isAuthenticated,user, clearToken } = useAuthStore();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -72,19 +73,7 @@ const Navbar = () => {
             </Button>
 
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                <div className="flex flex-col items-end">
-                  <span className="text-sm font-medium text-text-main">
-                    {user?.email}
-                  </span>
-                  <span className="text-xs text-text-muted capitalize">
-                    {user?.role}
-                  </span>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
-                  Logout
-                </Button>
-              </div>
+              <UserDropdown />
             ) : (
               <>
                 <Link to="/auth/login">

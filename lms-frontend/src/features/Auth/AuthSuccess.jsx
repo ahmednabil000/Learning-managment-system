@@ -7,16 +7,34 @@ const AuthSuccess = () => {
   const navigate = useNavigate();
   const setToken = useAuthStore((state) => state.setToken);
 
+  const callbackParam =
+    searchParams.get("callback") || searchParams.get("state");
+
+  const decodedCallback = callbackParam
+    ? decodeURIComponent(callbackParam)
+    : null;
+
   useEffect(() => {
     const token = searchParams.get("token");
     if (token) {
       setToken(token);
-      navigate("/");
+
+      let targetPath = "/";
+      if (
+        decodedCallback &&
+        decodedCallback !== "null" &&
+        decodedCallback !== "[object Object]"
+      ) {
+        // Remove surrounding quotes if they exist
+        targetPath = decodedCallback.replace(/^"|"$/g, "");
+      }
+
+      navigate(targetPath, { replace: true });
     } else {
       console.error("Authentication failed: No token provided in URL");
       navigate("/auth/login");
     }
-  }, [searchParams, setToken, navigate]);
+  }, [searchParams, setToken, navigate, decodedCallback]);
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center">
