@@ -10,14 +10,18 @@ exports.getCourseById = async (req, res) => {
     }
     res.json(course);
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
 exports.getCourses = async (req, res) => {
   try {
-    const { page, pageCount, search } =
-      await paginationValidator.validateAsync(req.query);
+    const { error, value } = paginationValidator.validate(req.query);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const { page, pageCount, search } = value;
 
     const { courses, totalItems, totalPages } =
       await courseService.getAllCourses(page, pageCount, search);
@@ -48,32 +52,44 @@ exports.getCourses = async (req, res) => {
 
 exports.createCourse = async (req, res) => {
   try {
-    const { title, description, price, imageUrl } =
-      await courseValidator.validateAsync(req.body);
+    console.log("rec");
+    const { error, value } = courseValidator.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const { title, description, price, imageUrl, tag } = value;
 
     const course = await courseService.createCourse({
       title,
       description,
       price,
       imageUrl,
+      instructor: req.user.id,
+      tag,
     });
     res.status(201).json(course);
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
 exports.updateCourseById = async (req, res) => {
   try {
-    const { title, description, price, imageUrl } =
-      await courseValidator.validateAsync(req.body);
+    const { error, value } = courseValidator.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const { title, description, price, imageUrl, tag } = value;
 
     const course = await courseService.updateCourse({
       id: req.params.id,
       title,
       description,
       price,
+      tag,
       imageUrl,
+      instructor: req.user.id,
     });
     res.json(course);
   } catch (error) {

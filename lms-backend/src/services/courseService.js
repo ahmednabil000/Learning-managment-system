@@ -1,8 +1,8 @@
-const { Course, Lecture, Lesson } = require("../models");
+const { Course, Lecture, Lesson, CourseTag } = require("../models");
 const courseValidation = require("../validations/courses/courseValidator");
 
 exports.getCourseById = async (id) => {
-  const course = await Course.findById(id)
+  const course = await Course.findOne({ _id: id })
     .populate("tag")
     .populate("instructor")
     .lean();
@@ -55,22 +55,57 @@ exports.getAllCourses = async (page, pageCount, search) => {
   };
 };
 
-exports.createCourse = async ({ title, description, price, imageUrl }) => {
-  const course = await Course.create({ title, description, price, imageUrl });
+exports.createCourse = async ({
+  title,
+  description,
+  price,
+  imageUrl,
+  instructor,
+  tag,
+}) => {
+  // Find the tag by id to get its ObjectId
+  const courseTag = await CourseTag.findOne({ _id: tag });
+  if (!courseTag) {
+    throw new Error("Tag not found");
+  }
+
+  const course = await Course.create({
+    title,
+    description,
+    price,
+    imageUrl,
+    instructor,
+    tag: courseTag._id,
+  });
   return course;
 };
 
-exports.updateCourse = async ({ id, title, description, price, imageUrl }) => {
-  const course = await Course.findById(id);
-
+exports.updateCourse = async ({
+  id,
+  title,
+  description,
+  price,
+  imageUrl,
+  tag,
+  instructor,
+}) => {
+  const course = await Course.findOne({ _id: id });
   if (!course) {
-    throw error("Course not found");
+    throw new Error("Course not found");
+  }
+
+  // Find the tag by id to get its ObjectId
+  const courseTag = await CourseTag.findOne({ _id: tag });
+  if (!courseTag) {
+    throw new Error("Tag not found");
   }
 
   course.title = title;
   course.description = description;
   course.price = price;
   course.imageUrl = imageUrl;
+  course.instructor = instructor;
+  course.tag = courseTag._id;
 
   await course.save();
 
@@ -78,10 +113,10 @@ exports.updateCourse = async ({ id, title, description, price, imageUrl }) => {
 };
 
 exports.deleteCourse = async (id) => {
-  const course = await Course.findById(id);
+  const course = await Course.findOne({ _id: id });
 
   if (!course) {
-    throw error("Course not found");
+    throw new Error("Course not found");
   }
 
   await course.remove();

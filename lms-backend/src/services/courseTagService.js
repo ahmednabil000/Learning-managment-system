@@ -6,7 +6,7 @@ exports.createTag = async ({ name, description }) => {
 };
 
 exports.updateTag = async ({ id, name, description }) => {
-  const tag = await CourseTag.findById(id);
+  const tag = await CourseTag.findOne({ _id: id });
 
   if (!tag) {
     throw new Error("Tag not found");
@@ -20,7 +20,7 @@ exports.updateTag = async ({ id, name, description }) => {
 };
 
 exports.deleteTag = async (id) => {
-  const tag = await CourseTag.findById(id);
+  const tag = await CourseTag.findOne({ _id: id });
 
   if (!tag) {
     throw new Error("Tag not found");
@@ -31,7 +31,7 @@ exports.deleteTag = async (id) => {
 };
 
 exports.getTagById = async (id) => {
-  const tag = await CourseTag.findById(id);
+  const tag = await CourseTag.findOne({ _id: id });
   return tag;
 };
 

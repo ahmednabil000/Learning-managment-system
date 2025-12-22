@@ -61,9 +61,11 @@ exports.getTagById = async (req, res) => {
 
 exports.getAllTags = async (req, res) => {
   try {
-    const { page, pageCount, search } = await paginationValidator.validateAsync(
-      req.query
-    );
+    const { error, value } = paginationValidator.validate(req.query);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const { page, pageCount, search } = value;
 
     const { tags, totalItems, totalPages } = await courseTagService.getAllTags(
       page,

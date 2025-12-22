@@ -1,5 +1,5 @@
 exports.getTrackById = async (id) => {
-  const track = await Track.findById(id);
+  const track = await Track.findOne({ _id: id });
   return track;
 };
 
@@ -29,7 +29,7 @@ exports.createTrack = async ({ title, description, price, imageUrl }) => {
 };
 
 exports.updateTrack = async ({ id, title, description, price, imageUrl }) => {
-  const track = await Track.findById(id);
+  const track = await Track.findOne({ _id: id });
 
   if (!track) {
     throw error("Track not found");
@@ -46,7 +46,7 @@ exports.updateTrack = async ({ id, title, description, price, imageUrl }) => {
 };
 
 exports.deleteTrack = async (id) => {
-  const track = await Track.findById(id);
+  const track = await Track.findOne({ _id: id });
 
   if (!track) {
     throw error("Track not found");
@@ -57,18 +57,18 @@ exports.deleteTrack = async (id) => {
 };
 
 exports.addCourseToTrack = async ({ trackId, courseId }) => {
-  const track = await Track.findById(trackId);
+  const track = await Track.findOne({ _id: trackId });
 
   if (!track) {
     throw error("Track not found");
   }
-  const course = await Course.findById(courseId);
+  const course = await Course.findOne({ id: courseId });
 
   if (!course) {
     throw error("Course not found");
   }
 
-  track.courses.push(courseId);
+  track.courses.push(course._id);
 
   await track.save();
 
@@ -76,18 +76,18 @@ exports.addCourseToTrack = async ({ trackId, courseId }) => {
 };
 
 exports.deleteCourseFromTrack = async ({ trackId, courseId }) => {
-  const track = await Track.findById(trackId);
+  const track = await Track.findOne({ _id: trackId });
 
   if (!track) {
     throw error("Track not found");
   }
-  const course = await Course.findById(courseId);
+  const course = await Course.findOne({ _id: courseId });
 
   if (!course) {
     throw error("Course not found");
   }
 
-  track.courses.pull(courseId);
+  track.courses.pull(course._id);
 
   await track.save();
 

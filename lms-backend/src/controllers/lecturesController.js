@@ -6,6 +6,7 @@ module.exports.createLecture = async (req, res) => {
   try {
     const { error, value } = lectureValidator.validate(req.body);
     if (error) {
+      console.log(error);
       return res.status(400).json({ message: error.details[0].message });
     }
     const lecture = await lectureService.createLecture(value);
@@ -15,6 +16,16 @@ module.exports.createLecture = async (req, res) => {
   }
 };
 
+module.exports.getCourseLectures = async (req, res) => {
+  try {
+    const lectures = await lectureService.getLecturesByCourseId(
+      req.params.courseId
+    );
+    return res.status(200).json(lectures);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
 module.exports.updateLecture = async (req, res) => {
   try {
     const { error, value } = lectureValidator.validate(req.body);
@@ -51,9 +62,11 @@ module.exports.getLectureById = async (req, res) => {
 
 module.exports.getLectures = async (req, res) => {
   try {
-    const { page, pageCount, search } = await paginationValidator.validateAsync(
-      req.query
-    );
+    const { error, value } = paginationValidator.validate(req.query);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const { page, pageCount, search } = value;
 
     const { lectures, totalItems, totalPages } =
       await lectureService.getAllLectures(page, pageCount, search);

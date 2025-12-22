@@ -5,7 +5,7 @@ module.exports.createAssignment = async (assignmentData) => {
 };
 
 module.exports.getAssignmentById = async (id) => {
-  return await Assignment.findById(id);
+  return await Assignment.findOne({ _id: id });
 };
 
 module.exports.getAssignments = async (page, pageCount, search) => {
@@ -16,9 +16,11 @@ module.exports.getAssignments = async (page, pageCount, search) => {
 };
 
 module.exports.updateAssignmentById = async (id, updateData) => {
-  return await Assignment.findByIdAndUpdate(id, updateData, { new: true });
+  return await Assignment.findOneAndUpdate({ _id: id }, updateData, {
+    new: true,
+  });
 };
 
 module.exports.deleteAssignmentById = async (id) => {
-  return await Assignment.findByIdAndDelete(id);
+  return await Assignment.findOneAndDelete({ _id: id });
 };

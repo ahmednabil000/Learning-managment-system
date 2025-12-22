@@ -5,13 +5,16 @@ const generateToken = require("../utils/generateToken");
 const router = express.Router();
 
 // Redirect to Google
-router.get(
-  "/google",
+router.get("/google", (req, res, next) => {
+  const state =
+    req.query.state || encodeURIComponent(JSON.stringify({ callback: "/" }));
+
   passport.authenticate("google", {
     scope: ["profile", "email"],
     session: false,
-  })
-);
+    state: state,
+  })(req, res, next);
+});
 
 // Google callback
 router.get(
@@ -22,9 +25,16 @@ router.get(
   }),
   (req, res) => {
     const token = generateToken(req.user);
-
+    let callback = "/";
+    try {
+      console.log("recieved");
+      console.log(req.query.state);
+      callback = JSON.stringify(req.query.state);
+    } catch (e) {}
     // Option 1: redirect with token
-    res.redirect(`${process.env.CLIENT_SUCCESS_URL}?token=${token}`);
+    res.redirect(
+      `${process.env.CLIENT_SUCCESS_URL}?token=${token}&callback=${callback}`
+    );
 
     // Option 2: send JSON
     // res.json({ token });

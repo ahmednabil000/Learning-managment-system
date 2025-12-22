@@ -5,7 +5,7 @@ module.exports.createExam = async (examData) => {
 };
 
 module.exports.getExamById = async (id) => {
-  return await Exam.findById(id);
+  return await Exam.findOne({ _id: id });
 };
 
 module.exports.getExams = async (page, pageCount, search) => {
@@ -16,9 +16,9 @@ module.exports.getExams = async (page, pageCount, search) => {
 };
 
 module.exports.updateExamById = async (id, updateData) => {
-  return await Exam.findByIdAndUpdate(id, updateData, { new: true });
+  return await Exam.findOneAndUpdate({ _id: id }, updateData, { new: true });
 };
 
 module.exports.deleteExamById = async (id) => {
-  return await Exam.findByIdAndDelete(id);
+  return await Exam.findOneAndDelete({ _id: id });
 };

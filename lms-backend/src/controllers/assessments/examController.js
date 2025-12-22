@@ -29,9 +29,11 @@ module.exports.getExamById = async (req, res) => {
 
 module.exports.getExams = async (req, res) => {
   try {
-    const { page, pageCount, search } = await paginationValidator.validateAsync(
-      req.query
-    );
+    const { error, value } = paginationValidator.validate(req.query);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const { page, pageCount, search } = value;
 
     const exams = await examService.getExams(page, pageCount, search);
     const totalItems = exams.length;

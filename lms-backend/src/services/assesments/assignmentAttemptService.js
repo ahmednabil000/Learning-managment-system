@@ -6,7 +6,7 @@ module.exports.createAssignmentAttempt = async (assignmentAttemptData) => {
 };
 
 module.exports.getAssignmentAttemptById = async (assignmentAttemptId) => {
-  return await AssignmentAttempt.findById(assignmentAttemptId)
+  return await AssignmentAttempt.findOne({ _id: assignmentAttemptId })
     .populate("assignment")
     .populate("student");
 };
@@ -27,7 +27,7 @@ module.exports.getAssignmentAttempts = async (
   ) {
     throw new Error("You are not authorized to access this assignment");
   }
-  return await AssignmentAttempt.find({ assignment: assignmentId })
+  return await AssignmentAttempt.find({ assignment: assignmentDoc._id })
     .limit(pageCount)
     .skip((page - 1) * pageCount)
     .sort({ createdAt: -1 });
@@ -44,15 +44,17 @@ module.exports.getAssignmentAttemptsCount = async (assignmentId, userId) => {
   ) {
     throw new Error("You are not authorized to access this assignment");
   }
-  return await AssignmentAttempt.countDocuments({ assignment: assignmentId });
+  return await AssignmentAttempt.countDocuments({
+    assignment: assignmentDoc._id,
+  });
 };
 
 module.exports.updateAssignmentAttemptById = async (
   assignmentAttemptId,
   updateData
 ) => {
-  return await AssignmentAttempt.findByIdAndUpdate(
-    assignmentAttemptId,
+  return await AssignmentAttempt.findOneAndUpdate(
+    { _id: assignmentAttemptId },
     updateData,
     {
       new: true,
@@ -61,5 +63,5 @@ module.exports.updateAssignmentAttemptById = async (
 };
 
 module.exports.deleteAssignmentAttemptById = async (assignmentAttemptId) => {
-  return await AssignmentAttempt.findByIdAndDelete(assignmentAttemptId);
+  return await AssignmentAttempt.findOneAndDelete({ _id: assignmentAttemptId });
 };

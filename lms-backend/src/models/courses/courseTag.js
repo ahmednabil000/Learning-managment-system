@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
-const { v4: uuid4 } = require("uuid");
+const { v4: uuidv4 } = require("uuid");
 
 const courseTagSchema = new mongoose.Schema({
   _id: {
     type: String,
-    default: uuid4,
+    default: uuidv4,
   },
   name: String,
   description: String,

@@ -29,7 +29,7 @@ module.exports.updateLesson = async ({
   duration,
   videoUrl,
 }) => {
-  const lesson = await Lesson.findById(id);
+  const lesson = await Lesson.findOne({ id });
 
   if (!lesson) {
     throw error("Lesson not found");
@@ -48,7 +48,7 @@ module.exports.updateLesson = async ({
 };
 
 module.exports.deleteLesson = async (id) => {
-  const lesson = await Lesson.findById(id);
+  const lesson = await Lesson.findOne({ _id: id });
 
   if (!lesson) {
     throw error("Lesson not found");
@@ -59,7 +59,7 @@ module.exports.deleteLesson = async (id) => {
 };
 
 module.exports.getLessonById = async (id) => {
-  const lesson = await Lesson.findById(id);
+  const lesson = await Lesson.findOne({ _id: id });
   return lesson;
 };
 

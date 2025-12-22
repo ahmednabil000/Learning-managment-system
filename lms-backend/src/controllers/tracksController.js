@@ -2,7 +2,6 @@ const trackService = require("../services/trackService");
 const paginationValidator = require("../validations/paginationValidator");
 const trackValidator = require("../validations/courses/trackValidator");
 
-
 exports.getTrackById = async (req, res) => {
   try {
     const track = await trackService.getTrackById(req.params.id);
@@ -17,9 +16,11 @@ exports.getTrackById = async (req, res) => {
 
 exports.getTracks = async (req, res) => {
   try {
-    const { page, pageCount, search } = await paginationValidator.validateAsync(
-      req.query
-    );
+    const { error, value } = paginationValidator.validate(req.query);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const { page, pageCount, search } = value;
 
     const { tracks, totalItems, totalPages } = await trackService.getTracks(
       page,
@@ -45,6 +46,10 @@ exports.getTracks = async (req, res) => {
 
 exports.createTrack = async (req, res) => {
   try {
+    const { error, value } = trackValidator.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
     const {
       title,
       description,
@@ -53,7 +58,7 @@ exports.createTrack = async (req, res) => {
       isPublished,
       instructor,
       courses,
-    } = await trackValidator.validateAsync(req.body);
+    } = value;
 
     const track = await trackService.createTrack({
       title,
@@ -73,6 +78,10 @@ exports.createTrack = async (req, res) => {
 
 exports.updateTrackById = async (req, res) => {
   try {
+    const { error, value } = trackValidator.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
     const {
       title,
       description,
@@ -81,7 +90,7 @@ exports.updateTrackById = async (req, res) => {
       isPublished,
       instructor,
       courses,
-    } = await trackValidator.validateAsync(req.body);
+    } = value;
 
     const track = await trackService.updateTrackById(req.params.id, {
       title,

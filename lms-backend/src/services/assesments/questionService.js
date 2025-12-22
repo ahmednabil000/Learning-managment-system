@@ -8,7 +8,7 @@ exports.getQuestions = async (page, pageCount, search) => {
 };
 
 exports.getQuestionById = async (id) => {
-  return await Question.findById(id);
+  return await Question.findOne({ _id: id });
 };
 
 exports.createQuestion = async ({
@@ -32,11 +32,13 @@ exports.createQuestion = async ({
 };
 
 exports.updateQuestionById = async (id, updateData) => {
-  return await Question.findByIdAndUpdate(id, updateData, { new: true });
+  return await Question.findOneAndUpdate({ _id: id }, updateData, {
+    new: true,
+  });
 };
 
 exports.deleteQuestionById = async (id) => {
-  return await Question.findByIdAndDelete(id);
+  return await Question.findOneAndDelete({ _id: id });
 };
 
 exports.addQuestionToAssignment = async ({
@@ -58,8 +60,8 @@ exports.addQuestionToAssignment = async ({
 };
 
 exports.removeQuestionFromAssignment = async (questionId) => {
-  return await Question.findByIdAndUpdate(
-    questionId,
+  return await Question.findOneAndUpdate(
+    { _id: questionId },
     { assignment: null },
     { new: true }
   );
@@ -84,8 +86,8 @@ exports.addQuestionToExam = async ({
 };
 
 exports.removeQuestionFromExam = async (questionId) => {
-  return await Question.findByIdAndUpdate(
-    questionId,
+  return await Question.findOneAndUpdate(
+    { _id: questionId },
     { exam: null },
     { new: true }
   );

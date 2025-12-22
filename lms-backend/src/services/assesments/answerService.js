@@ -5,7 +5,7 @@ module.exports.createAnswer = async (answerData) => {
 };
 
 module.exports.getAnswerById = async (answerId) => {
-  return await Answer.findById(answerId);
+  return await Answer.findOne({ _id: answerId });
 };
 
 module.exports.getAnswersByExamAttempt = async (examAttemptId) => {
@@ -19,13 +19,11 @@ module.exports.getAnswersByAssignmentAttempt = async (assignmentAttemptId) => {
 };
 
 module.exports.updateAnswerById = async (answerId, updateData) => {
-  return await Answer.findByIdAndUpdate(answerId, updateData, {
+  return await Answer.findOneAndUpdate({ _id: answerId }, updateData, {
     new: true,
   });
-    };
-
-module.exports.deleteAnswerById = async (answerId) => {
-  return await Answer.findByIdAndDelete(answerId);
 };
 
-
+module.exports.deleteAnswerById = async (answerId) => {
+  return await Answer.findOneAndDelete({ _id: answerId });
+};

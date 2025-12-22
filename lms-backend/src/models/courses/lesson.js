@@ -9,7 +9,7 @@ const lessonSchema = new mongoose.Schema(
     },
     title: String,
     lecture: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "Lecture",
       required: true,
     },

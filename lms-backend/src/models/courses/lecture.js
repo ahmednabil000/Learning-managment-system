@@ -9,13 +9,13 @@ const lectureSchema = new mongoose.Schema(
     },
     title: String,
     course: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "Course",
       required: true,
     },
     lessons: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "Lesson",
       },
     ],

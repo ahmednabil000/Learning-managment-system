@@ -11,12 +11,12 @@ const courseSchema = new mongoose.Schema(
     price: Number,
     imageUrl: String,
     instructor: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "Instructor",
       required: true,
     },
     tag: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "CourseTag",
       required: true,
     },

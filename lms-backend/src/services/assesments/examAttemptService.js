@@ -5,7 +5,7 @@ module.exports.createExamAttempt = async (examAttemptData) => {
 };
 
 module.exports.getExamAttemptById = async (examAttemptId) => {
-  return await ExamAttempt.findById(examAttemptId)
+  return await ExamAttempt.findOne({ _id: examAttemptId })
     .populate("exam")
     .populate("student");
 };
@@ -18,7 +18,7 @@ module.exports.getExamAttempts = async (examId, page, pageCount, userId) => {
   if (examDoc.instructor && examDoc.instructor.toString() !== userId) {
     throw new Error("You are not authorized to access this exam");
   }
-  return await ExamAttempt.find({ exam: examId })
+  return await ExamAttempt.find({ exam: examDoc._id })
     .limit(pageCount)
     .skip((page - 1) * pageCount)
     .sort({ createdAt: -1 });
@@ -32,15 +32,19 @@ module.exports.getExamAttemptsCount = async (examId, userId) => {
   if (examDoc.instructor && examDoc.instructor.toString() !== userId) {
     throw new Error("You are not authorized to access this exam");
   }
-  return await ExamAttempt.countDocuments({ exam: examId });
+  return await ExamAttempt.countDocuments({ exam: examDoc._id });
 };
 
 module.exports.updateExamAttemptById = async (examAttemptId, updateData) => {
-  return await ExamAttempt.findByIdAndUpdate(examAttemptId, updateData, {
-    new: true,
-  });
+  return await ExamAttempt.findOneAndUpdate(
+    { _id: examAttemptId },
+    updateData,
+    {
+      new: true,
+    }
+  );
 };
 
 module.exports.deleteExamAttemptById = async (examAttemptId) => {
-  return await ExamAttempt.findByIdAndDelete(examAttemptId);
+  return await ExamAttempt.findOneAndDelete({ _id: examAttemptId });
 };

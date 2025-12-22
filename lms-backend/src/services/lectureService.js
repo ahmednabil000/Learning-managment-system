@@ -2,17 +2,22 @@ const mongoose = require("mongoose");
 const Lecture = require("../models/courses/Lecture");
 
 exports.createLecture = async ({ title, description, courseId, order }) => {
-  const lecture = await Lecture.create({
-    title,
-    description,
-    course: courseId,
-    order,
-  });
-  return lecture;
+  console.log("start create new lecture");
+  try {
+    const lecture = await Lecture.create({
+      title,
+      description,
+      course: courseId,
+      order,
+    });
+    return lecture;
+  } catch (error) {
+    console.log(error.message);
+  }
 };
 
 exports.updateLecture = async ({ id, title, description, courseId, order }) => {
-  const lecture = await Lecture.findById(id);
+  const lecture = await Lecture.findOne({ _id: id });
 
   if (!lecture) {
     throw error("Lecture not found");
@@ -29,7 +34,7 @@ exports.updateLecture = async ({ id, title, description, courseId, order }) => {
 };
 
 exports.deleteLecture = async (id) => {
-  const lecture = await Lecture.findById(id);
+  const lecture = await Lecture.findOne({ _id: id });
 
   if (!lecture) {
     throw error("Lecture not found");
@@ -40,7 +45,7 @@ exports.deleteLecture = async (id) => {
 };
 
 exports.addLessonToLecture = async ({ lectureId, lessonId }) => {
-  const lecture = await Lecture.findById(lectureId);
+  const lecture = await Lecture.findOne({ _id: lectureId });
 
   if (!lecture) {
     throw error("Lecture not found");
@@ -54,7 +59,7 @@ exports.addLessonToLecture = async ({ lectureId, lessonId }) => {
 };
 
 exports.deleteLessonFromLecture = async ({ lectureId, lessonId }) => {
-  const lecture = await Lecture.findById(lectureId);
+  const lecture = await Lecture.findOne({ _id: lectureId });
 
   if (!lecture) {
     throw error("Lecture not found");
@@ -68,8 +73,23 @@ exports.deleteLessonFromLecture = async ({ lectureId, lessonId }) => {
 };
 
 exports.getLectureById = async (id) => {
-  const lecture = await Lecture.findById(id).populate("lessons");
+  const lecture = await Lecture.findOne({ _id: id }).populate("lessons");
   return lecture;
+};
+
+exports.getLecturesByCourseId = async (courseId) => {
+  const { Course } = require("../models");
+  const course = await Course.findOne({ _id: courseId });
+
+  if (!course) {
+    throw new Error("Course not found");
+  }
+
+  const lectures = await Lecture.find({ course: course._id })
+    .sort({ order: 1 })
+    .populate("lessons");
+
+  return lectures;
 };
 
 exports.getAllLectures = async (page, pageCount, search) => {
