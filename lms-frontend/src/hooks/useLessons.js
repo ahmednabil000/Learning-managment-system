@@ -17,42 +17,53 @@ export const useLessonsByLecture = (lectureId) => {
   });
 };
 
-export const useCreateLesson = () => {
+export const useCreateLesson = (options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: LessonsService.createLesson,
-    onSuccess: (_, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
         queryKey: ["lessons", variables.lectureId],
       });
       queryClient.invalidateQueries({
         queryKey: ["lecture", variables.lectureId],
       });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };
 
-export const useUpdateLesson = () => {
+export const useUpdateLesson = (options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => LessonsService.updateLesson(id, data),
-    onSuccess: (_, { id, data }) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
+      const { id, data: payload } = variables;
       queryClient.invalidateQueries({ queryKey: ["lesson", id] });
-      queryClient.invalidateQueries({ queryKey: ["lessons", data.lectureId] });
-      queryClient.invalidateQueries({ queryKey: ["lecture", data.lectureId] });
+      queryClient.invalidateQueries({
+        queryKey: ["lessons", payload.lectureId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["lecture", payload.lectureId],
+      });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };
 
-export const useDeleteLesson = (lectureId) => {
+export const useDeleteLesson = (lectureId, options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: LessonsService.deleteLesson,
-    onSuccess: () => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       if (lectureId) {
         queryClient.invalidateQueries({ queryKey: ["lessons", lectureId] });
         queryClient.invalidateQueries({ queryKey: ["lecture", lectureId] });
       }
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useCourses, useDeleteCourse } from "../../hooks/useCourses";
 import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import Button from "../../shared/components/Button";
+import ConfirmModal from "../../shared/components/ConfirmModal";
 import notification from "../../utils/notification";
 
 const MyCoursesPage = () => {
@@ -10,25 +11,41 @@ const MyCoursesPage = () => {
   const [page, setPage] = useState(1);
   const pageCount = 10;
 
+  // Deletion Modal State
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    courseId: null,
+    isLoading: false,
+  });
+
   const { data, isLoading } = useCourses({ page, pageCount, search });
-  const { mutate: deleteCourse } = useDeleteCourse();
+  const { mutate: deleteCourse, isPending: isDeleting } = useDeleteCourse();
 
   const courses = data?.shortCourses || [];
   const totalPages = data?.totalPages || 1;
-  console.log(courses);
+
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this course?")) {
-      deleteCourse(id, {
-        onSuccess: () => {
-          notification.success("Course deleted successfully!");
-        },
-        onError: (error) => {
-          notification.error(
-            error?.response?.data?.message || "Failed to delete course."
-          );
-        },
-      });
-    }
+    setDeleteModal({
+      isOpen: true,
+      courseId: id,
+      isLoading: false,
+    });
+  };
+
+  const confirmDelete = () => {
+    setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+    deleteCourse(deleteModal.courseId, {
+      onSuccess: () => {
+        notification.success("Course deleted successfully!");
+        setDeleteModal({ isOpen: false, courseId: null, isLoading: false });
+      },
+      onError: (error) => {
+        notification.error(
+          error?.response?.data?.message || "Failed to delete course."
+        );
+        setDeleteModal((prev) => ({ ...prev, isLoading: false }));
+      },
+    });
   };
 
   return (
@@ -169,6 +186,16 @@ const MyCoursesPage = () => {
           ))}
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        title="Delete Course"
+        message="Are you sure you want to delete this course? All associated data will be permanently removed. This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        isLoading={deleteModal.isLoading || isDeleting}
+      />
     </div>
   );
 };

@@ -9,6 +9,7 @@ import {
   FaChevronUp,
 } from "react-icons/fa";
 import Button from "../../../shared/components/Button";
+import ConfirmModal from "../../../shared/components/ConfirmModal";
 import {
   useCreateLecture,
   useUpdateLecture,
@@ -33,13 +34,22 @@ const CurriculumManager = ({ courseId }) => {
   const [addingLessonToLectureId, setAddingLessonToLectureId] = useState(null);
   const [editingLessonId, setEditingLessonId] = useState(null);
 
+  // Deletion Modal State
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+    isLoading: false,
+  });
+
   const { data: lectures = [], isLoading: isLoadingLectures } =
     useLecturesByCourse(courseId);
 
   const { mutate: createLecture, isPending: isCreatingLecture } =
     useCreateLecture({
       onSuccess: () => {
-        notification.success("Lecture created!");
+        notification.success("Lecture created successfully!");
         setIsAddingLecture(false);
       },
       onError: (err) =>
@@ -51,7 +61,7 @@ const CurriculumManager = ({ courseId }) => {
   const { mutate: updateLecture, isPending: isUpdatingLecture } =
     useUpdateLecture({
       onSuccess: () => {
-        notification.success("Lecture updated!");
+        notification.success("Lecture updated successfully!");
         setEditingLectureId(null);
       },
       onError: (err) =>
@@ -60,18 +70,24 @@ const CurriculumManager = ({ courseId }) => {
         ),
     });
 
-  const { mutate: deleteLecture } = useDeleteLecture(courseId, {
-    onSuccess: () => notification.success("Lecture deleted!"),
-    onError: (err) =>
-      notification.error(
-        err?.response?.data?.message || "Failed to delete lecture"
-      ),
-  });
+  const { mutate: deleteLecture, isPending: isDeletingLecture } =
+    useDeleteLecture(courseId, {
+      onSuccess: () => {
+        notification.success("Lecture and its lessons deleted!");
+        closeDeleteModal();
+      },
+      onError: (err) => {
+        notification.error(
+          err?.response?.data?.message || "Failed to delete lecture"
+        );
+        closeDeleteModal();
+      },
+    });
 
   const { mutate: createLesson, isPending: isCreatingLesson } = useCreateLesson(
     {
       onSuccess: () => {
-        notification.success("Lesson created!");
+        notification.success("Lesson created successfully!");
         setAddingLessonToLectureId(null);
       },
       onError: (err) =>
@@ -84,7 +100,7 @@ const CurriculumManager = ({ courseId }) => {
   const { mutate: updateLesson, isPending: isUpdatingLesson } = useUpdateLesson(
     {
       onSuccess: () => {
-        notification.success("Lesson updated!");
+        notification.success("Lesson updated successfully!");
         setEditingLessonId(null);
       },
       onError: (err) =>
@@ -94,13 +110,24 @@ const CurriculumManager = ({ courseId }) => {
     }
   );
 
-  const { mutate: deleteLesson } = useDeleteLesson({
-    onSuccess: () => notification.success("Lesson deleted!"),
-    onError: (err) =>
-      notification.error(
-        err?.response?.data?.message || "Failed to delete lesson"
-      ),
-  });
+  const { mutate: deleteLesson, isPending: isDeletingLesson } = useDeleteLesson(
+    {
+      onSuccess: () => {
+        notification.success("Lesson deleted successfully!");
+        closeDeleteModal();
+      },
+      onError: (err) => {
+        notification.error(
+          err?.response?.data?.message || "Failed to delete lesson"
+        );
+        closeDeleteModal();
+      },
+    }
+  );
+
+  const closeDeleteModal = () => {
+    setDeleteModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+  };
 
   const toggleLecture = (id) => {
     setExpandedLectures((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -118,10 +145,30 @@ const CurriculumManager = ({ courseId }) => {
     updateLecture({ id: lectureId, data: { ...data, courseId } });
   };
 
-  const handleDeleteLecture = (id) => {
-    if (window.confirm("Delete this lecture and all its lessons?")) {
-      deleteLecture(id);
-    }
+  const handleDeleteLecture = (lecture) => {
+    setDeleteModal({
+      isOpen: true,
+      title: "Delete Lecture",
+      message: `Are you sure you want to delete "${lecture.title}"? This will also remove all lessons within this lecture. This action cannot be undone.`,
+      onConfirm: () => {
+        setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+        deleteLecture(lecture._id);
+      },
+      isLoading: false,
+    });
+  };
+
+  const handleDeleteLesson = (lesson) => {
+    setDeleteModal({
+      isOpen: true,
+      title: "Delete Lesson",
+      message: `Are you sure you want to delete lesson "${lesson.title}"? This action cannot be undone.`,
+      onConfirm: () => {
+        setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+        deleteLesson(lesson._id);
+      },
+      isLoading: false,
+    });
   };
 
   const handleAddLessonSubmit = (data, lectureId, lessonCount) => {
@@ -224,7 +271,7 @@ const CurriculumManager = ({ courseId }) => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteLecture(lecture._id)}
+                        onClick={() => handleDeleteLecture(lecture)}
                       >
                         <FaTrash className="text-error" />
                       </Button>
@@ -237,7 +284,7 @@ const CurriculumManager = ({ courseId }) => {
                     <LectureLessons
                       lectureId={lecture._id}
                       updateLesson={updateLesson}
-                      deleteLesson={deleteLesson}
+                      deleteLesson={handleDeleteLesson}
                       addingLessonToLectureId={addingLessonToLectureId}
                       setAddingLessonToLectureId={setAddingLessonToLectureId}
                       handleAddLessonSubmit={handleAddLessonSubmit}
@@ -252,6 +299,18 @@ const CurriculumManager = ({ courseId }) => {
             ))}
         </div>
       )}
+
+      {/* Reusable Confirm Deletion Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        title={deleteModal.title}
+        message={deleteModal.message}
+        onConfirm={deleteModal.onConfirm}
+        onCancel={closeDeleteModal}
+        isLoading={
+          deleteModal.isLoading || isDeletingLecture || isDeletingLesson
+        }
+      />
     </div>
   );
 };
@@ -360,12 +419,6 @@ const LessonItem = ({ lesson, updateLesson, deleteLesson, onEdit }) => {
     }
   };
 
-  const handleDelete = () => {
-    if (window.confirm("Delete this lesson?")) {
-      deleteLesson(lesson._id);
-    }
-  };
-
   return (
     <div className="p-3 bg-surface border border-border rounded-lg flex items-center justify-between group hover:border-primary/30 transition-colors">
       <div className="flex items-center gap-3">
@@ -382,7 +435,7 @@ const LessonItem = ({ lesson, updateLesson, deleteLesson, onEdit }) => {
                 : "Video uploaded"}
             </span>
             <span className="text-xs text-text-muted flex items-center gap-1">
-              <FaClock size={10} className="text-warning" /> {lesson.duration}m
+              <FaClock size={10} className="text-warning" /> {lesson.duration}s
             </span>
           </div>
         </div>
@@ -407,7 +460,7 @@ const LessonItem = ({ lesson, updateLesson, deleteLesson, onEdit }) => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleDelete}
+          onClick={() => deleteLesson(lesson)}
           title="Delete Lesson"
         >
           <FaTrash className="text-error" />

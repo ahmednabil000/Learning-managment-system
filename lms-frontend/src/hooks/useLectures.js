@@ -24,51 +24,61 @@ export const useLecture = (id) => {
   });
 };
 
-export const useCreateLecture = () => {
+export const useCreateLecture = (options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: LecturesService.createLecture,
-    onSuccess: (_, variables) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: ["lectures"] });
       queryClient.invalidateQueries({
         queryKey: ["course", variables.courseId],
       });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };
 
-export const useUpdateLecture = () => {
+export const useUpdateLecture = (options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => LecturesService.updateLecture(id, data),
-    onSuccess: (_, { id, data }) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
+      const { id, data: payload } = variables;
       queryClient.invalidateQueries({ queryKey: ["lectures"] });
       queryClient.invalidateQueries({ queryKey: ["lecture", id] });
-      queryClient.invalidateQueries({ queryKey: ["course", data.courseId] });
+      queryClient.invalidateQueries({ queryKey: ["course", payload.courseId] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };
 
-export const useDeleteLecture = (courseId) => {
+export const useDeleteLecture = (courseId, options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: LecturesService.deleteLecture,
-    onSuccess: () => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: ["lectures"] });
       if (courseId) {
         queryClient.invalidateQueries({ queryKey: ["course", courseId] });
       }
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };
 
-export const useAddLessonToLecture = () => {
+export const useAddLessonToLecture = (options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ lectureId, lessonId }) =>
       LecturesService.addLessonToLecture(lectureId, lessonId),
-    onSuccess: (_, { lectureId }) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
+      const { lectureId } = variables;
       queryClient.invalidateQueries({ queryKey: ["lecture", lectureId] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };

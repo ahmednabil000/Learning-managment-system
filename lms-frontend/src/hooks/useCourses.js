@@ -17,33 +17,40 @@ export const useCourse = (id) => {
   });
 };
 
-export const useCreateCourse = () => {
+export const useCreateCourse = (options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: CoursesService.createCourse,
-    onSuccess: () => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: ["courses"] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };
 
-export const useUpdateCourse = () => {
+export const useUpdateCourse = (options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => CoursesService.updateCourse(id, data),
-    onSuccess: (_, { id }) => {
+    ...options,
+    onSuccess: (data, variables, context) => {
+      const { id } = variables;
       queryClient.invalidateQueries({ queryKey: ["courses"] });
       queryClient.invalidateQueries({ queryKey: ["course", id] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };
 
-export const useDeleteCourse = () => {
+export const useDeleteCourse = (options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: CoursesService.deleteCourse,
-    onSuccess: () => {
+    ...options,
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: ["courses"] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
 };
