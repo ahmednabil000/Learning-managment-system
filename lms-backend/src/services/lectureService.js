@@ -34,14 +34,20 @@ exports.updateLecture = async ({ id, title, description, courseId, order }) => {
 };
 
 exports.deleteLecture = async (id) => {
-  const lecture = await Lecture.findOne({ _id: id });
+  try {
+    console.log("Start lecture delete service");
 
-  if (!lecture) {
-    throw error("Lecture not found");
+    const lecture = await Lecture.findOne({ _id: id });
+
+    if (!lecture) {
+      throw error("Lecture not found");
+    }
+
+    await lecture.deleteOne();
+    return lecture;
+  } catch (error) {
+    console.log(error.message);
   }
-
-  await lecture.remove();
-  return lecture;
 };
 
 exports.addLessonToLecture = async ({ lectureId, lessonId }) => {
