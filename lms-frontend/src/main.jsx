@@ -14,6 +14,8 @@ import LoginPage from "./features/Auth/LoginPage";
 import SignupPage from "./features/Auth/SignupPage";
 
 import CoursesPage from "./features/Courses/CoursesPage";
+import CourseDetailsPage from "./features/Courses/CourseDetailsPage";
+import LessonViewPage from "./features/Courses/LessonViewPage";
 
 import AuthSuccess from "./features/Auth/AuthSuccess";
 
@@ -49,6 +51,14 @@ const router = createBrowserRouter([
       {
         path: "courses",
         element: <CoursesPage />,
+      },
+      {
+        path: "courses/:courseId",
+        element: <CourseDetailsPage />,
+      },
+      {
+        path: "courses/:courseId/lessons/:lessonId",
+        element: <LessonViewPage />,
       },
       {
         path: "unauthorized",

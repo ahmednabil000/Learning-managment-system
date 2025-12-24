@@ -21,70 +21,68 @@ const CourseCard = ({ course }) => {
   };
 
   return (
-    <Card className="p-0 overflow-hidden flex flex-col h-full group bg-surface border-border/50 hover:shadow-2xl transition-all duration-500 rounded-2xl border-none shadow-sm relative">
-      <Link
-        to={`/courses/${course._id}`}
-        className="block relative overflow-hidden"
-      >
-        <img
-          src={
-            course.image || "https://via.placeholder.com/400x225?text=Course"
-          }
-          alt={course.title}
-          className="w-full h-52 object-cover transform group-hover:scale-110 transition-transform duration-700"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    <Link to={`/courses/${course._id}`} className="block h-full">
+      <Card className="p-0 overflow-hidden flex flex-col h-full bg-white border border-gray-200 rounded-lg">
+        <div className="relative overflow-hidden">
+          <img
+            src={
+              course.imageUrl ||
+              "https://via.placeholder.com/400x225?text=Course"
+            }
+            alt={course.title}
+            className="w-full h-48 object-cover"
+          />
+          {course.category && (
+            <span className="absolute top-3 left-3 right-auto rtl:right-3 rtl:left-auto bg-primary text-white text-xs font-semibold px-3 py-1 rounded-md">
+              {course.category}
+            </span>
+          )}
+        </div>
 
-        {course.category && (
-          <span className="absolute top-4 left-4 right-auto rtl:right-4 rtl:left-auto bg-primary/90 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">
-            {course.category}
-          </span>
-        )}
-      </Link>
-
-      <div className="p-6 flex flex-col grow">
-        <Link to={`/courses/${course._id}`}>
-          <h3 className="text-lg font-bold text-text-main mb-2 line-clamp-2 group-hover:text-primary transition-colors leading-tight">
+        <div className="p-5 flex flex-col grow">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
             {course.title}
           </h3>
-        </Link>
-        <p className="text-sm text-text-muted mb-6 line-clamp-2 leading-relaxed">
-          {course.description}
-        </p>
+          <p className="text-sm text-gray-600 mb-4 line-clamp-2 flex-grow">
+            {course.description}
+          </p>
 
-        <div className="mt-auto space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center bg-warning/10 px-2 py-1 rounded-lg">
-              {course.rating !== undefined && (
-                <>
-                  <span className="text-warning font-bold text-sm mr-1 rtl:ml-1 rtl:mr-0">
-                    {course.rating}
+          <div className="mt-auto space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-3">
+                {course.rating !== undefined && (
+                  <div className="flex items-center gap-1">
+                    <FaStar className="text-yellow-400 h-4 w-4" />
+                    <span className="text-gray-700 font-medium">
+                      {course.rating}
+                    </span>
+                  </div>
+                )}
+                {course.students !== undefined && (
+                  <span className="text-gray-500">
+                    ({course.students} {t("courses.students")})
                   </span>
-                  <FaStar className="text-warning h-3.5 w-3.5" />
-                </>
-              )}
-              {course.students !== undefined && (
-                <span className="text-[11px] text-text-muted font-medium ml-2 rtl:mr-2 rtl:ml-0 border-l border-border/50 pl-2 rtl:pr-2 rtl:pl-0">
-                  {course.students} {t("courses.students")}
-                </span>
-              )}
+                )}
+              </div>
             </div>
-            <span className="text-xl font-bold text-secondary leading-none">
-              ${course.price}
-            </span>
-          </div>
 
-          <Button
-            variant="primary"
-            className="w-full shadow-lg shadow-primary/20 group-hover:shadow-primary/30 transform active:scale-[0.98] transition-all"
-            size="md"
-            onClick={handleEnroll}
-          >
-            {t("courses.enroll_now")}
-          </Button>
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+              <span className="text-2xl font-bold text-primary">
+                ${course.price}
+              </span>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleEnroll}
+                className="px-4"
+              >
+                {t("courses.enroll_now")}
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </Link>
   );
 };
 
