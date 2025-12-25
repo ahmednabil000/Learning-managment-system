@@ -34,6 +34,15 @@ app.use("/exam-attempts", require("./routes/examAttemptRoutes"));
 app.use("/assignment-attempts", require("./routes/assignmentAttemptRoutes"));
 app.use("/course-tags", require("./routes/courseTagRoutes"));
 app.use("/exams", require("./routes/examRoutes"));
+app.use("/sessions", require("./routes/liveSessionRoutes"));
+
+// 404 handler - must be after all other routes
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Not Found",
+    message: `Cannot ${req.method} ${req.path}`,
+  });
+});
 
 mongoose
   .connect(process.env.MONGO_URI)

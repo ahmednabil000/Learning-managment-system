@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+
 const Lesson = require("../models/courses/lesson");
 
 module.exports.createLesson = async ({
