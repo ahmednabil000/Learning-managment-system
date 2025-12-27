@@ -64,3 +64,33 @@ export const secondsToMinutes = (seconds) => {
 export const secondsToHours = (seconds) => {
   return Math.round((seconds / 3600) * 10) / 10;
 };
+
+/**
+ * Converts duration from seconds to a verbose human-readable format
+ * @param {number} seconds - Duration in seconds
+ * @returns {string} - Formatted string (e.g., "1 hour 30 minutes")
+ */
+export const formatDurationVerbose = (seconds) => {
+  if (!seconds || seconds < 0) return "0 seconds";
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  const parts = [];
+
+  if (hours > 0) {
+    parts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
+  }
+
+  if (minutes > 0) {
+    parts.push(`${minutes} ${minutes === 1 ? "minute" : "minutes"}`);
+  }
+
+  // If less than 1 minute (and not 0), show seconds
+  if (hours === 0 && minutes === 0) {
+    const secs = Math.floor(seconds);
+    parts.push(`${secs} ${secs === 1 ? "second" : "seconds"}`);
+  }
+
+  return parts.join(" ");
+};

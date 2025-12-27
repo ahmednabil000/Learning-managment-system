@@ -38,7 +38,8 @@ const InstructorLiveSessionsPage = () => {
     if (!sessionToDelete) return;
 
     try {
-      await deleteSessionMutation.mutateAsync(sessionToDelete._id);
+      // API expects sessionName (roomName), not ID
+      await deleteSessionMutation.mutateAsync(sessionToDelete.roomName);
       setSessionToDelete(null);
     } catch (error) {
       console.error("Error deleting session:", error);
@@ -61,7 +62,6 @@ const InstructorLiveSessionsPage = () => {
       live: "bg-red-500 text-white animate-pulse",
       scheduled: "bg-blue-500 text-white",
       ended: "bg-gray-500 text-white",
-      cancelled: "bg-yellow-500 text-white",
     };
 
     return (
@@ -70,7 +70,7 @@ const InstructorLiveSessionsPage = () => {
           statusColors[status] || "bg-gray-500"
         }`}
       >
-        {status.toUpperCase()}
+        {status?.toUpperCase() || "UNKNOWN"}
       </span>
     );
   };
@@ -117,7 +117,7 @@ const InstructorLiveSessionsPage = () => {
       ) : (
         <div className="grid gap-6">
           {sessions.map((session) => {
-            const scheduledDate = new Date(session.scheduledAt);
+            const scheduledDate = new Date(session.startsAt);
             const isUpcoming =
               scheduledDate > new Date() && session.status === "scheduled";
 
@@ -131,17 +131,14 @@ const InstructorLiveSessionsPage = () => {
                     <div className="flex items-center gap-3 mb-3">
                       {getStatusBadge(session.status)}
                       <FaVideo className="text-primary" />
+                      <span className="text-xs text-text-muted font-mono bg-background px-2 py-1 rounded">
+                        {session.roomName}
+                      </span>
                     </div>
 
                     <h3 className="text-xl font-bold text-text-main mb-2">
-                      {session.title}
+                      {session.course?.title || "Session Metadata Unavailable"}
                     </h3>
-
-                    {session.description && (
-                      <p className="text-text-muted mb-4 line-clamp-2">
-                        {session.description}
-                      </p>
-                    )}
 
                     <div className="flex flex-wrap items-center gap-4 text-sm text-text-muted mb-4">
                       {session.course && (
@@ -184,7 +181,7 @@ const InstructorLiveSessionsPage = () => {
 
                   <div className="flex flex-col gap-2 min-w-fit">
                     {session.status === "live" && (
-                      <Link to={`/live-session/${session._id}`}>
+                      <Link to={`/live-session/${session.roomName}`}>
                         <Button
                           variant="primary"
                           className="flex items-center gap-2 animate-pulse"

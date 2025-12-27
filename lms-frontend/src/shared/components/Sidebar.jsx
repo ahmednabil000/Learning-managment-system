@@ -30,6 +30,12 @@ const Sidebar = () => {
       end: false,
     },
     {
+      name: "Live Sessions",
+      path: "/dashboard/live-sessions",
+      icon: HiOutlineAcademicCap,
+      end: false,
+    },
+    {
       name: "Settings",
       path: "/dashboard/settings",
       icon: HiOutlineCog,

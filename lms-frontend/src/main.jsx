@@ -26,6 +26,9 @@ import CourseFormPage from "./features/Dashboard/CourseFormPage";
 
 import NotAuthorized from "./shared/components/NotAuthorized";
 import NotFound from "./shared/components/NotFound";
+import LiveSessionPage from "./features/LiveSessions/LiveSessionPage";
+import RecordingPlaybackPage from "./features/LiveSessions/RecordingPlaybackPage";
+import InstructorLiveSessionsPage from "./features/Dashboard/InstructorLiveSessionsPage";
 
 const router = createBrowserRouter([
   {
@@ -61,6 +64,14 @@ const router = createBrowserRouter([
         element: <LessonViewPage />,
       },
       {
+        path: "live-session/:sessionName",
+        element: <LiveSessionPage />,
+      },
+      {
+        path: "live-session/:sessionName/recording",
+        element: <RecordingPlaybackPage />,
+      },
+      {
         path: "unauthorized",
         element: <NotAuthorized />,
       },
@@ -93,6 +104,10 @@ const router = createBrowserRouter([
       {
         path: "courses/:id/edit",
         element: <CourseFormPage mode="edit" />,
+      },
+      {
+        path: "live-sessions",
+        element: <InstructorLiveSessionsPage />,
       },
     ],
   },

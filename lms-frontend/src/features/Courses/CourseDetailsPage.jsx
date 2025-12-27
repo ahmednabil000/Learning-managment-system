@@ -15,7 +15,10 @@ import {
 import { useState } from "react";
 import Button from "../../shared/components/Button";
 import { toast } from "react-toastify";
-import { formatDuration } from "../../utils/formatDuration";
+import {
+  formatDuration,
+  formatDurationVerbose,
+} from "../../utils/formatDuration";
 
 const CourseDetailsPage = () => {
   const { courseId } = useParams();
@@ -168,12 +171,6 @@ const CourseDetailsPage = () => {
                     <span className="text-4xl font-bold text-primary">
                       ${course.price}
                     </span>
-                    <span className="text-text-muted line-through mb-1 text-lg">
-                      ${course.price * 2}
-                    </span>
-                    <span className="text-success font-semibold mb-1 ml-auto">
-                      50% Off
-                    </span>
                   </div>
 
                   <Button
@@ -286,11 +283,11 @@ const CourseDetailsPage = () => {
                 <p className="text-secondary font-medium mb-4">
                   {course.instructor?.role}
                 </p>
-                <p className="text-text-muted text-sm leading-relaxed">
-                  Expert instructor with years of experience in the industry,
-                  dedicated to sharing knowledge and helping students achieve
-                  their goals.
-                </p>
+                {course.instructor?.bio && (
+                  <p className="text-text-muted text-sm leading-relaxed">
+                    {course.instructor.bio}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -301,7 +298,9 @@ const CourseDetailsPage = () => {
                   <span className="text-text-muted flex items-center gap-2">
                     <FaUser size={14} /> Enrolled Students
                   </span>
-                  <span className="font-bold">1,234</span>
+                  <span className="font-bold">
+                    {course.enrollmentCount || 0}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-text-muted flex items-center gap-2">
@@ -316,7 +315,7 @@ const CourseDetailsPage = () => {
                     <FaClock size={14} /> Total Duration
                   </span>
                   <span className="font-bold">
-                    {formatDuration(totalDuration).formatted}
+                    {formatDurationVerbose(totalDuration)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
