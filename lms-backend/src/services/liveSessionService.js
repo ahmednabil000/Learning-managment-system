@@ -1,26 +1,34 @@
 const LiveSession = require("../models/liveSessions");
+const Recording = require("../models/recording");
 const logger = require("../config/logger");
 const { dailyClient } = require("../config/axios");
-const liveSessions = require("../models/liveSessions");
-const SehedualedLiveSession = require("../models/schedualedLiveSession");
 
-exports.createSession = async (instructorId, title, description) => {
-  console.log("recived");
+exports.createSession = async (
+  instructorId,
+  courseId,
+  startsAt,
+  recordingEnabled = false,
+  maxParticipants = null
+) => {
+  console.log("Creating live session");
   const room = await dailyClient.post("/rooms", {
     privacy: "public",
     properties: {
-      enable_recording: "cloud",
+      enable_recording: recordingEnabled ? "cloud" : null,
     },
   });
 
-  const session = await LiveSession.insertOne({
-    roomId: room.data.id,
-    instructor: instructorId,
+  const session = new LiveSession({
+    courseId,
     roomName: room.data.name,
-    title,
-    description,
+    status: "scheduled",
+    startsAt,
+    createdBy: instructorId,
+    recordingEnabled,
+    maxParticipants,
   });
 
+  await session.save();
   return session;
 };
 
@@ -44,7 +52,7 @@ exports.deleteSessionByName = async (userId, name) => {
   if (!session) {
     return { message: "Session not found", statusCode: 404 };
   }
-  if (session.instructor !== userId) {
+  if (session.createdBy !== userId) {
     return {
       message: `Not authorized to delete session:${name}`,
       statusCode: 403,
@@ -54,32 +62,55 @@ exports.deleteSessionByName = async (userId, name) => {
   await dailyClient.delete(`/rooms/${name}`);
   await LiveSession.deleteOne({ roomName: name });
 
-  return session;
+  return { data: session, statusCode: 200 };
 };
 
 exports.startSessionRecording = async (userId, sessionName) => {
-  const session = await liveSessions.findOne({ roomName: sessionName });
+  const session = await LiveSession.findOne({ roomName: sessionName });
   if (!session) {
     return { message: "Session not found", statusCode: 404 };
   }
-  if (session.instructor != userId) {
-    return { message: `Not authorized to record session:${sessionName}` };
+  if (session.createdBy != userId) {
+    return {
+      message: `Not authorized to record session:${sessionName}`,
+      statusCode: 403,
+    };
   }
-  console.log("rec");
+  if (!session.recordingEnabled) {
+    return {
+      message: "Recording is not enabled for this session",
+      statusCode: 400,
+    };
+  }
+
+  console.log("Starting recording");
   const result = await dailyClient.post(
     `/rooms/${sessionName}/recordings/start`
   );
-  session.recordingId = result.data.recordingId;
-  await session.save();
+
+  // Create Recording model entry
+  const recording = new Recording({
+    sessionId: session._id,
+    recordingId: result.data.recordingId,
+    status: "processing",
+  });
+  await recording.save();
+
+  // Update session status to live if it's scheduled
+  if (session.status === "scheduled") {
+    session.status = "live";
+    await session.save();
+  }
+
   return result.data;
 };
 
 exports.stopSessionRecording = async (userId, sessionName) => {
-  const session = await liveSessions.findOne({ roomName: sessionName });
+  const session = await LiveSession.findOne({ roomName: sessionName });
   if (!session) {
     return { message: "Session not found", statusCode: 404 };
   }
-  if (session.instructor != userId) {
+  if (session.createdBy != userId) {
     return {
       message: `Not authorized to stop recording session:${sessionName}`,
       statusCode: 403,
@@ -89,41 +120,55 @@ exports.stopSessionRecording = async (userId, sessionName) => {
   const result = await dailyClient.post(
     `/rooms/${sessionName}/recordings/stop`
   );
+
+  // Update Recording model
+  const recording = await Recording.findOne({ sessionId: session._id }).sort({
+    createdAt: -1,
+  });
+  if (recording) {
+    recording.duration = result.data.duration;
+    recording.status = "completed";
+    await recording.save();
+  }
+
+  // Update session status and endsAt
+  session.status = "ended";
+  session.endsAt = new Date();
+  await session.save();
+
   return result.data;
 };
 
 exports.getSessionRecording = async (userId, sessionName) => {
-  const session = await liveSessions.findOne({ roomName: sessionName });
+  const session = await LiveSession.findOne({ roomName: sessionName });
   if (!session) {
     return { message: "Session not found", statusCode: 404 };
   }
-  if (session.instructor != userId) {
+  if (session.createdBy != userId) {
     return {
-      message: `Not authorized to stop recording session:${sessionName}`,
+      message: `Not authorized to access recording for session:${sessionName}`,
       statusCode: 403,
     };
   }
-  if (!session.recordingId) {
+
+  const recordingDoc = await Recording.findOne({ sessionId: session._id }).sort(
+    { createdAt: -1 }
+  );
+  if (!recordingDoc) {
     return {
       message: "This session has not been recorded",
       statusCode: 404,
     };
   }
 
-  const recording = await dailyClient.get(`/recordings/${session.recordingId}`);
+  const recording = await dailyClient.get(
+    `/recordings/${recordingDoc.recordingId}`
+  );
   const accessLink = await dailyClient.get(
-    `/recordings/${session.recordingId}/access-link`
+    `/recordings/${recordingDoc.recordingId}/access-link`
   );
   recording.data.accessLink = accessLink.data;
   return recording.data;
-};
-
-exports.schedualeLiveSession = async (userId, startsAtDate) => {
-  const scedueledSession = await SehedualedLiveSession.insertOne({
-    instructor: userId,
-    startsAt: startAtDate,
-  });
-  return scedueledSession;
 };
 
 exports.getSessionToken = async (user, sessionName) => {
@@ -137,4 +182,28 @@ exports.getSessionToken = async (user, sessionName) => {
   });
 
   return tokenRes.data.token;
+};
+
+exports.getSessionsByInstructor = async (instructorId) => {
+  return LiveSession.find({ createdBy: instructorId });
+};
+
+exports.updateSessionStatus = async (sessionId, status) => {
+  const allowed = ["scheduled", "live", "ended"];
+  if (!allowed.includes(status)) {
+    return {
+      statusCode: 400,
+      message: `Invalid status. Must be one of: ${allowed.join(", ")}`,
+    };
+  }
+  const session = await LiveSession.findById(sessionId);
+  if (!session) {
+    return { statusCode: 404, message: "Session not found" };
+  }
+  session.status = status;
+  if (status === "ended") {
+    session.endsAt = new Date();
+  }
+  await session.save();
+  return { statusCode: 200, data: session };
 };

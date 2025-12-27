@@ -30,4 +30,13 @@ router.post(
   authMiddleware,
   liveSessionController.getSessionToken
 );
+router.get(
+  "/instructor/:instructorId",
+  liveSessionController.getSessionsByInstructor
+);
+router.put(
+  "/:sessionId/status",
+  authMiddleware,
+  liveSessionController.updateSessionStatus
+);
 module.exports = router;

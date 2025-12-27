@@ -3,6 +3,9 @@ const Course = require("./courses/course");
 const Lecture = require("./courses/Lecture");
 const Lesson = require("./courses/lesson");
 const CourseTag = require("./courses/courseTag");
+const LiveSession = require("./liveSessions");
+const SessionParticipant = require("./sessionParticipant");
+const Recording = require("./recording");
 
 module.exports = {
   User,
@@ -14,4 +17,7 @@ module.exports = {
   Lecture,
   Lesson,
   CourseTag,
+  LiveSession,
+  SessionParticipant,
+  Recording,
 };

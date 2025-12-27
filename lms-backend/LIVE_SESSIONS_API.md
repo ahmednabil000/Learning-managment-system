@@ -1,6 +1,6 @@
-# Live Sessions and Scheduled Live Sessions API Documentation
+# Live Sessions API Documentation
 
-This document provides comprehensive documentation for the Live Session and Scheduled Live Session APIs, including request formats, response formats, and examples.
+This document provides comprehensive documentation for the Live Session API, including request formats, response formats, and data models.
 
 ---
 
@@ -15,14 +15,12 @@ This document provides comprehensive documentation for the Live Session and Sche
    - [Stop Session Recording](#5-stop-session-recording)
    - [Get Session Recording](#6-get-session-recording)
    - [Get Session Token](#7-get-session-token)
+   - [Get Instructor Live Sessions](#get-instructor-live-sessions)
 
-2. [Scheduled Live Sessions API](#scheduled-live-sessions-api)
-   - [Create Scheduled Session](#1-create-scheduled-session)
-   - [Get All Scheduled Sessions](#2-get-all-scheduled-sessions)
-   - [Get Scheduled Session by ID](#3-get-scheduled-session-by-id)
-   - [Update Scheduled Session Status](#4-update-scheduled-session-status)
-   - [Update Scheduled Session](#5-update-scheduled-session)
-   - [Delete Scheduled Session](#6-delete-scheduled-session)
+2. [Data Models](#data-models)
+   - [LiveSession Model](#livesession-model)
+   - [SessionParticipant Model](#sessionparticipant-model)
+   - [Recording Model](#recording-model)
 
 ---
 
@@ -42,8 +40,10 @@ Creates a new live session room with recording capabilities.
 
 ```json
 {
-  "title": "string",
-  "description": "string"
+  "courseId": "string",
+  "startsAt": "ISO 8601 date string",
+  "recordingEnabled": "boolean (optional)",
+  "maxParticipants": "number (optional)"
 }
 ```
 
@@ -51,8 +51,10 @@ Creates a new live session room with recording capabilities.
 
 ```json
 {
-  "title": "Introduction to Node.js",
-  "description": "A comprehensive guide to Node.js fundamentals"
+  "courseId": "course-uuid-123",
+  "startsAt": "2025-12-26T15:00:00.000Z",
+  "recordingEnabled": true,
+  "maxParticipants": 50
 }
 ```
 
@@ -63,16 +65,28 @@ Creates a new live session room with recording capabilities.
 ```json
 {
   "_id": "uuid-string",
-  "roomId": "daily-room-id",
-  "instructor": "instructor-id",
+  "courseId": "course-uuid-123",
   "roomName": "unique-room-name",
-  "title": "Introduction to Node.js",
-  "description": "A comprehensive guide to Node.js fundamentals",
-  "recordingId": null
+  "status": "scheduled",
+  "startsAt": "2025-12-26T15:00:00.000Z",
+  "endsAt": null,
+  "createdBy": "instructor-id",
+  "recordingEnabled": true,
+  "maxParticipants": 50,
+  "createdAt": "2025-12-26T10:00:00.000Z",
+  "updatedAt": "2025-12-26T10:00:00.000Z"
 }
 ```
 
-**Error Response:**
+**Error Responses:**
+
+**Status Code:** `400 Bad Request`
+
+```json
+{
+  "error": "courseId and startsAt are required"
+}
+```
 
 **Status Code:** `500 Internal Server Error`
 
@@ -109,12 +123,16 @@ GET /sessions/unique-room-name
 ```json
 {
   "_id": "uuid-string",
-  "roomId": "daily-room-id",
-  "instructor": "instructor-id",
+  "courseId": "course-uuid-123",
   "roomName": "unique-room-name",
-  "title": "Introduction to Node.js",
-  "description": "A comprehensive guide to Node.js fundamentals",
-  "recordingId": null
+  "status": "live",
+  "startsAt": "2025-12-26T15:00:00.000Z",
+  "endsAt": null,
+  "createdBy": "instructor-id",
+  "recordingEnabled": true,
+  "maxParticipants": 50,
+  "createdAt": "2025-12-26T10:00:00.000Z",
+  "updatedAt": "2025-12-26T10:00:00.000Z"
 }
 ```
 
@@ -153,12 +171,16 @@ DELETE /sessions/unique-room-name
 ```json
 {
   "_id": "uuid-string",
-  "roomId": "daily-room-id",
-  "instructor": "instructor-id",
+  "courseId": "course-uuid-123",
   "roomName": "unique-room-name",
-  "title": "Introduction to Node.js",
-  "description": "A comprehensive guide to Node.js fundamentals",
-  "recordingId": null
+  "status": "ended",
+  "startsAt": "2025-12-26T15:00:00.000Z",
+  "endsAt": "2025-12-26T17:00:00.000Z",
+  "createdBy": "instructor-id",
+  "recordingEnabled": true,
+  "maxParticipants": 50,
+  "createdAt": "2025-12-26T10:00:00.000Z",
+  "updatedAt": "2025-12-26T17:00:00.000Z"
 }
 ```
 
@@ -237,6 +259,14 @@ POST /sessions/unique-room-name/start-recording
 }
 ```
 
+**Status Code:** `400 Bad Request`
+
+```json
+{
+  "message": "Recording is not enabled for this session"
+}
+```
+
 **Status Code:** `500 Internal Server Error`
 
 ```json
@@ -244,6 +274,11 @@ POST /sessions/unique-room-name/start-recording
   "error": "Failed to start session recording"
 }
 ```
+
+**Notes:**
+
+- Starting a recording creates a `Recording` model entry with status "processing"
+- If the session status is "scheduled", it will automatically change to "live" when recording starts
 
 ---
 
@@ -302,6 +337,12 @@ POST /sessions/unique-room-name/stop-recording
   "error": "Failed to stop session recording"
 }
 ```
+
+**Notes:**
+
+- Stopping a recording updates the `Recording` model with duration and changes status to "completed"
+- The session status is automatically changed to "ended"
+- The session's `endsAt` field is set to the current timestamp
 
 ---
 
@@ -364,9 +405,15 @@ GET /sessions/unique-room-name/recording
 
 ```json
 {
-  "message": "Not authorized to stop recording session:unique-room-name"
+  "message": "Not authorized to access recording for session:unique-room-name"
 }
 ```
+
+**Notes:**
+
+- Retrieves the most recent recording for the session from the `Recording` model
+- Fetches recording details and access link from Daily.co API
+- Access link is temporary and will expire
 
 ---
 
@@ -384,22 +431,12 @@ Generates a meeting token for a user to join a live session. The token includes 
 
 **Request Body:**
 
-```json
-{
-  "userName": "string"
-}
-```
+No request body required. User information is extracted from the authentication token.
 
 **Request Example:**
 
 ```
 POST /sessions/unique-room-name/token
-```
-
-```json
-{
-  "userName": "John Doe"
-}
 ```
 
 **Success Response:**
@@ -415,9 +452,9 @@ POST /sessions/unique-room-name/token
 **Response Details:**
 
 - `token` (string) - JWT token that can be used to join the live session. The token includes:
-  - User's name
+  - User's name (from `req.user.name`)
   - Session room name
-  - User permissions (is_owner for instructors)
+  - User permissions (`is_owner: true` for instructors, `false` for others)
 
 **Error Response:**
 
@@ -431,90 +468,26 @@ POST /sessions/unique-room-name/token
 
 **Usage:**
 
-The returned token should be used by the client to authenticate when joining the live session through the video conferencing platform.
+The returned token should be used by the client to authenticate when joining the live session through the video conferencing platform (Daily.co).
 
 ---
 
-## Scheduled Live Sessions API
+### Get Instructor Live Sessions
 
-Base URL: (To be configured - typically `/scheduled-sessions`)
+Fetches all live sessions created by a specific instructor.
 
-### 1. Create Scheduled Session
-
-Creates a new scheduled live session for a future date and time.
-
-**Endpoint:** `POST /scheduled-sessions`
-
-**Authentication:** Required (Bearer Token)
-
-**Request Body:**
-
-```json
-{
-  "startsAt": "ISO 8601 date string"
-}
-```
-
-**Request Example:**
-
-```json
-{
-  "startsAt": "2025-12-26T15:00:00.000Z"
-}
-```
-
-**Success Response:**
-
-**Status Code:** `201 Created`
-
-```json
-{
-  "_id": "uuid-string",
-  "instructor": "instructor-id",
-  "startsAt": "2025-12-26T15:00:00.000Z",
-  "status": "scheduled",
-  "sessionId": null
-}
-```
-
-**Error Responses:**
-
-**Status Code:** `400 Bad Request`
-
-```json
-{
-  "message": "startsAt is required"
-}
-```
-
-**Status Code:** `500 Internal Server Error`
-
-```json
-{
-  "error": "Failed to create scheduled session"
-}
-```
-
----
-
-### 2. Get All Scheduled Sessions
-
-Retrieves a paginated list of scheduled sessions with optional filtering by instructor.
-
-**Endpoint:** `GET /scheduled-sessions`
+**Endpoint:** `GET /sessions/instructor/:instructorId`
 
 **Authentication:** Not Required
 
-**Query Parameters:**
+**URL Parameters:**
 
-- `page` (number, optional, default: 1) - Page number
-- `limit` (number, optional, default: 10) - Number of items per page
-- `instructorId` (string, optional) - Filter by instructor ID
+- `instructorId` (string, required) - The instructor's user ID
 
 **Request Example:**
 
 ```
-GET /scheduled-sessions?page=1&limit=10&instructorId=instructor-123
+GET /sessions/instructor/1234567890abcdef
 ```
 
 **Success Response:**
@@ -523,34 +496,17 @@ GET /scheduled-sessions?page=1&limit=10&instructorId=instructor-123
 
 ```json
 {
-  "sessions": [
-    {
-      "_id": "uuid-string",
-      "instructor": {
-        "_id": "instructor-id",
-        "name": "John Doe",
-        "email": "john@example.com"
-      },
-      "startsAt": "2025-12-26T15:00:00.000Z",
-      "status": "scheduled",
-      "sessionId": null
-    },
-    {
-      "_id": "uuid-string-2",
-      "instructor": {
-        "_id": "instructor-id",
-        "name": "John Doe",
-        "email": "john@example.com"
-      },
-      "startsAt": "2025-12-27T10:00:00.000Z",
-      "status": "live",
-      "sessionId": "live-session-id"
-    }
-  ],
-  "page": 1,
-  "limit": 10,
-  "totalItems": 25,
-  "totalPages": 3
+  "_id": "uuid-string",
+  "courseId": "course-uuid-123",
+  "roomName": "unique-room-name",
+  "status": "scheduled",
+  "startsAt": "2025-12-26T15:00:00.000Z",
+  "endsAt": null,
+  "createdBy": "1234567890abcdef",
+  "recordingEnabled": true,
+  "maxParticipants": 50,
+  "createdAt": "2025-12-26T10:00:00.000Z",
+  "updatedAt": "2025-12-26T10:00:00.000Z"
 }
 ```
 
@@ -560,291 +516,7 @@ GET /scheduled-sessions?page=1&limit=10&instructorId=instructor-123
 
 ```json
 {
-  "error": "Failed to fetch scheduled sessions"
-}
-```
-
----
-
-### 3. Get Scheduled Session by ID
-
-Retrieves details of a specific scheduled session.
-
-**Endpoint:** `GET /scheduled-sessions/:id`
-
-**Authentication:** Not Required
-
-**URL Parameters:**
-
-- `id` (string, required) - The scheduled session ID
-
-**Request Example:**
-
-```
-GET /scheduled-sessions/uuid-string
-```
-
-**Success Response:**
-
-**Status Code:** `200 OK`
-
-```json
-{
-  "_id": "uuid-string",
-  "instructor": {
-    "_id": "instructor-id",
-    "name": "John Doe",
-    "email": "john@example.com"
-  },
-  "startsAt": "2025-12-26T15:00:00.000Z",
-  "status": "scheduled",
-  "sessionId": {
-    "_id": "live-session-id",
-    "roomName": "unique-room-name",
-    "title": "Introduction to Node.js"
-  }
-}
-```
-
-**Error Responses:**
-
-**Status Code:** `404 Not Found`
-
-```json
-{
-  "message": "Scheduled session not found"
-}
-```
-
-**Status Code:** `500 Internal Server Error`
-
-```json
-{
-  "error": "Failed to fetch scheduled session"
-}
-```
-
----
-
-### 4. Update Scheduled Session Status
-
-Updates only the status of a scheduled session. Valid statuses: `scheduled`, `live`, `finished`.
-
-**Endpoint:** `PATCH /scheduled-sessions/:id/status`
-
-**Authentication:** Required (Bearer Token)
-
-**URL Parameters:**
-
-- `id` (string, required) - The scheduled session ID
-
-**Request Body:**
-
-```json
-{
-  "status": "scheduled | live | finished"
-}
-```
-
-**Request Example:**
-
-```json
-{
-  "status": "live"
-}
-```
-
-**Success Response:**
-
-**Status Code:** `200 OK`
-
-```json
-{
-  "_id": "uuid-string",
-  "instructor": "instructor-id",
-  "startsAt": "2025-12-26T15:00:00.000Z",
-  "status": "live",
-  "sessionId": "live-session-id"
-}
-```
-
-**Error Responses:**
-
-**Status Code:** `400 Bad Request` (Missing status)
-
-```json
-{
-  "message": "status is required"
-}
-```
-
-**Status Code:** `400 Bad Request` (Invalid status)
-
-```json
-{
-  "message": "Invalid status. Must be one of: scheduled, live, finished"
-}
-```
-
-**Status Code:** `404 Not Found`
-
-```json
-{
-  "message": "Scheduled session not found"
-}
-```
-
-**Status Code:** `403 Forbidden`
-
-```json
-{
-  "message": "Not authorized to update this scheduled session"
-}
-```
-
-**Status Code:** `500 Internal Server Error`
-
-```json
-{
-  "error": "Failed to update scheduled session status"
-}
-```
-
----
-
-### 5. Update Scheduled Session
-
-Updates multiple fields of a scheduled session (status, startsAt, sessionId).
-
-**Endpoint:** `PUT /scheduled-sessions/:id`
-
-**Authentication:** Required (Bearer Token)
-
-**URL Parameters:**
-
-- `id` (string, required) - The scheduled session ID
-
-**Request Body:**
-
-```json
-{
-  "startsAt": "ISO 8601 date string (optional)",
-  "status": "scheduled | live | finished (optional)",
-  "sessionId": "string (optional)"
-}
-```
-
-**Request Example:**
-
-```json
-{
-  "startsAt": "2025-12-26T16:00:00.000Z",
-  "status": "live",
-  "sessionId": "live-session-id"
-}
-```
-
-**Success Response:**
-
-**Status Code:** `200 OK`
-
-```json
-{
-  "_id": "uuid-string",
-  "instructor": "instructor-id",
-  "startsAt": "2025-12-26T16:00:00.000Z",
-  "status": "live",
-  "sessionId": "live-session-id"
-}
-```
-
-**Error Responses:**
-
-**Status Code:** `400 Bad Request`
-
-```json
-{
-  "message": "Invalid status. Must be one of: scheduled, live, finished"
-}
-```
-
-**Status Code:** `404 Not Found`
-
-```json
-{
-  "message": "Scheduled session not found"
-}
-```
-
-**Status Code:** `403 Forbidden`
-
-```json
-{
-  "message": "Not authorized to update this scheduled session"
-}
-```
-
-**Status Code:** `500 Internal Server Error`
-
-```json
-{
-  "error": "Failed to update scheduled session"
-}
-```
-
----
-
-### 6. Delete Scheduled Session
-
-Deletes a scheduled session. Only the instructor who created it can delete it.
-
-**Endpoint:** `DELETE /scheduled-sessions/:id`
-
-**Authentication:** Required (Bearer Token)
-
-**URL Parameters:**
-
-- `id` (string, required) - The scheduled session ID
-
-**Request Example:**
-
-```
-DELETE /scheduled-sessions/uuid-string
-```
-
-**Success Response:**
-
-**Status Code:** `200 OK`
-
-```json
-{
-  "message": "Scheduled session deleted successfully"
-}
-```
-
-**Error Responses:**
-
-**Status Code:** `404 Not Found`
-
-```json
-{
-  "message": "Scheduled session not found"
-}
-```
-
-**Status Code:** `403 Forbidden`
-
-```json
-{
-  "message": "Not authorized to delete this scheduled session"
-}
-```
-
-**Status Code:** `500 Internal Server Error`
-
-```json
-{
-  "error": "Failed to delete scheduled session"
+  "error": "Failed to fetch instructor sessions"
 }
 ```
 
@@ -852,31 +524,112 @@ DELETE /scheduled-sessions/uuid-string
 
 ## Data Models
 
-### Live Session Model
+### LiveSession Model
 
 ```javascript
 {
   _id: String (UUID),
-  roomId: String (unique),
-  instructor: String (ref: Instructor),
-  roomName: String (unique),
-  title: String,
-  description: String,
-  recordingId: String (optional)
+  courseId: String (ref: Course, required),
+  roomName: String (unique, required),
+  status: Enum ["scheduled", "live", "ended"] (default: "scheduled", required),
+  startsAt: Date (required),
+  endsAt: Date (optional),
+  createdBy: String (ref: Instructor, required),
+  recordingEnabled: Boolean (default: false),
+  maxParticipants: Number (optional),
+  createdAt: Date (auto-generated),
+  updatedAt: Date (auto-generated)
 }
 ```
 
-### Scheduled Live Session Model
+**Fields:**
+
+- `_id`: Unique identifier (UUID v4)
+- `courseId`: Reference to the Course this session belongs to
+- `roomName`: Unique Daily.co room name for the session
+- `status`: Current status of the session (scheduled → live → ended)
+- `startsAt`: Scheduled start time of the session
+- `endsAt`: Actual end time of the session (set when session ends)
+- `createdBy`: Instructor ID who created the session
+- `recordingEnabled`: Whether recording is enabled for this session
+- `maxParticipants`: Maximum number of participants allowed (optional)
+- `createdAt`: Timestamp when record was created
+- `updatedAt`: Timestamp when record was last updated
+
+### SessionParticipant Model
+
+Tracks attendance and permissions for each participant in a live session.
 
 ```javascript
 {
   _id: String (UUID),
-  sessionId: String (ref: LiveSession, optional),
-  instructor: String (ref: Instructor, required),
-  status: Enum ["scheduled", "live", "finished"] (default: "scheduled"),
-  startsAt: Date (required)
+  userId: String (ref: User, required),
+  sessionId: String (ref: LiveSession, required),
+  role: Enum ["instructor", "student"] (required),
+  joinedAt: Date (optional),
+  leftAt: Date (optional),
+  wasKicked: Boolean (default: false),
+  micAllowed: Boolean (default: true),
+  cameraAllowed: Boolean (default: true),
+  createdAt: Date (auto-generated),
+  updatedAt: Date (auto-generated)
 }
 ```
+
+**Fields:**
+
+- `_id`: Unique identifier (UUID v4)
+- `userId`: Reference to the User participating in the session
+- `sessionId`: Reference to the LiveSession
+- `role`: Participant's role (instructor or student)
+- `joinedAt`: Timestamp when participant joined the session
+- `leftAt`: Timestamp when participant left the session
+- `wasKicked`: Whether the participant was removed from the session
+- `micAllowed`: Whether participant has microphone permissions
+- `cameraAllowed`: Whether participant has camera permissions
+- `createdAt`: Timestamp when record was created
+- `updatedAt`: Timestamp when record was last updated
+
+**Indexes:**
+
+- Compound index on `sessionId` and `userId` for efficient participant lookups
+- Compound index on `sessionId` and `role` for role-based queries
+
+### Recording Model
+
+Stores information about session recordings.
+
+```javascript
+{
+  _id: String (UUID),
+  sessionId: String (ref: LiveSession, required),
+  recordingId: String (Daily.co recording ID, required),
+  s3Key: String (S3 storage key, optional),
+  duration: Number (Duration in seconds, optional),
+  status: Enum ["processing", "completed", "failed"] (default: "processing", required),
+  createdAt: Date (auto-generated),
+  updatedAt: Date (auto-generated)
+}
+```
+
+**Fields:**
+
+- `_id`: Unique identifier (UUID v4)
+- `sessionId`: Reference to the LiveSession that was recorded
+- `recordingId`: Daily.co recording identifier
+- `s3Key`: Amazon S3 storage key for the recording file
+- `duration`: Length of the recording in seconds
+- `status`: Processing status of the recording
+  - `processing`: Recording is being processed
+  - `completed`: Recording is ready and available
+  - `failed`: Recording processing failed
+- `createdAt`: Timestamp when record was created
+- `updatedAt`: Timestamp when record was last updated
+
+**Indexes:**
+
+- Index on `sessionId` for efficient session recording lookups
+- Index on `recordingId` for Daily.co recording queries
 
 ---
 
@@ -894,11 +647,17 @@ The token should contain the user information (`req.user.id`) which is used to v
 
 ## Notes
 
-1. **Live Sessions** are created immediately and provide a Daily.co room for real-time video conferencing.
-2. **Scheduled Live Sessions** are placeholders for future sessions and can be linked to a Live Session via the `sessionId` field.
-3. Only instructors who created a session can modify or delete it.
-4. The `status` field in Scheduled Sessions helps track the lifecycle: `scheduled` → `live` → `finished`.
-5. Recording features are integrated with Daily.co's cloud recording service.
+1. **Live Sessions** are associated with courses and provide Daily.co rooms for real-time video conferencing.
+2. Sessions have three statuses: `scheduled` → `live` → `ended`.
+3. Only instructors who created a session (via `createdBy` field) can modify or delete it.
+4. **Automatic Status Changes:**
+   - Starting recording on a "scheduled" session automatically changes it to "live"
+   - Stopping recording automatically changes the session to "ended" and sets `endsAt` timestamp
+5. **SessionParticipant** tracks who joins sessions, their roles, and their permissions.
+6. **Recording** model stores all recording-related data with integration to Daily.co and S3 storage.
+7. Recordings have their own lifecycle: `processing` → `completed` (or `failed`).
+8. The system supports configurable `maxParticipants` limit per session.
+9. Recording must be enabled (`recordingEnabled: true`) when creating a session to allow recording functionality.
 
 ---
 
