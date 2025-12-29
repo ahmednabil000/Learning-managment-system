@@ -54,3 +54,13 @@ export const useDeleteCourse = (options = {}) => {
     },
   });
 };
+
+export const useInstructorCourses = () => {
+  return useQuery({
+    queryKey: ["instructor-courses-all"],
+    queryFn: async () => {
+      const data = await CoursesService.fetchCourses({ pageCount: 100 });
+      return data.shortCourses || [];
+    },
+  });
+};

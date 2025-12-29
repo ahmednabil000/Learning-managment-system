@@ -13,6 +13,7 @@ import {
 import { useState } from "react";
 import { formatDuration } from "../../utils/formatDuration";
 import ReactPlayer from "react-player";
+import CommentsSection from "./components/CommentsSection";
 
 const LessonViewPage = () => {
   const { courseId, lessonId } = useParams();
@@ -98,37 +99,35 @@ const LessonViewPage = () => {
       {/* Main Content */}
       <div className="max-w-[1920px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] h-[calc(100vh-73px)]">
-          {/* Video Section */}
-          <div className="bg-black flex flex-col">
+          {/* Left Column: Video + Info + Comments */}
+          <div className="flex flex-col overflow-y-auto bg-gray-50">
             {/* Video Player */}
-            <div className="flex-1 flex items-center justify-center relative bg-black">
+            <div className="w-full bg-black aspect-video shrink-0">
               {currentLesson.videoUrl ? (
-                <div className="w-full h-full">
-                  <ReactPlayer
-                    src={currentLesson.videoUrl}
-                    controls={true}
-                    width="100%"
-                    height="100%"
-                    playing={false}
-                    config={{
-                      file: {
-                        attributes: {
-                          controlsList: "nodownload",
-                        },
+                <ReactPlayer
+                  src={currentLesson.videoUrl}
+                  controls={true}
+                  width="100%"
+                  height="100%"
+                  playing={false}
+                  config={{
+                    file: {
+                      attributes: {
+                        controlsList: "nodownload",
                       },
-                    }}
-                  />
-                </div>
+                    },
+                  }}
+                />
               ) : (
-                <div className="text-gray-400 text-center p-8">
-                  <FaPlayCircle size={64} className="mx-auto mb-4 opacity-40" />
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-8">
+                  <FaPlayCircle size={64} className="mb-4 opacity-40" />
                   <p className="text-lg">No video available for this lesson</p>
                 </div>
               )}
             </div>
 
             {/* Lesson Info */}
-            <div className="bg-white border-t border-gray-200 p-6">
+            <div className="bg-white border-b border-gray-200 p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 {currentLesson.title}
               </h2>
@@ -143,6 +142,11 @@ const LessonViewPage = () => {
                   {formatDuration(currentLesson.duration || 0).formatted}
                 </span>
               </div>
+            </div>
+
+            {/* Comments Section */}
+            <div className="p-6">
+              <CommentsSection lectureId={currentLectureId} />
             </div>
           </div>
 

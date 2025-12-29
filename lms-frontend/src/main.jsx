@@ -16,8 +16,11 @@ import SignupPage from "./features/Auth/SignupPage";
 import CoursesPage from "./features/Courses/CoursesPage";
 import CourseDetailsPage from "./features/Courses/CourseDetailsPage";
 import LessonViewPage from "./features/Courses/LessonViewPage";
+import StudentAssignmentPage from "./features/Courses/StudentAssignmentPage";
 
 import AuthSuccess from "./features/Auth/AuthSuccess";
+import PaymentCompletionPage from "./features/payments/PaymentCompletionPage";
+import CheckoutForm from "./features/payments/CheckoutForm";
 
 import DashboardLayout from "./shared/layouts/DashboardLayout";
 import InstructorDashboard from "./features/Dashboard/InstructorDashboard";
@@ -52,6 +55,14 @@ const router = createBrowserRouter([
         element: <AuthSuccess />,
       },
       {
+        path: "completion",
+        element: <PaymentCompletionPage />,
+      },
+      {
+        path: "checkout/:courseId",
+        element: <CheckoutForm />,
+      },
+      {
         path: "courses",
         element: <CoursesPage />,
       },
@@ -62,6 +73,10 @@ const router = createBrowserRouter([
       {
         path: "courses/:courseId/lessons/:lessonId",
         element: <LessonViewPage />,
+      },
+      {
+        path: "courses/:courseId/assignments/:assignmentId",
+        element: <StudentAssignmentPage />,
       },
       {
         path: "live-session/:sessionName",

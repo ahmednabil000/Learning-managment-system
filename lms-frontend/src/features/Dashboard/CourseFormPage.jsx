@@ -55,6 +55,7 @@ const CourseFormPage = ({ mode = "create" }) => {
       const tagValue =
         typeof course.tag === "object" ? course.tag?._id : course.tag;
       setValue("tag", tagValue || "");
+      setValue("level", course.level || "");
       setImageUrl(course.imageUrl || "");
     }
   }, [course, mode, setValue]);
@@ -83,6 +84,7 @@ const CourseFormPage = ({ mode = "create" }) => {
       price: Number(data.price),
       imageUrl,
       tag: data.tag,
+      level: data.level,
     };
 
     if (mode === "create") {
@@ -258,6 +260,27 @@ const CourseFormPage = ({ mode = "create" }) => {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-sm font-bold text-text-main mb-2 flex items-center gap-2">
+                  <FaTag className="text-warning" /> Difficulty Level
+                </label>
+                <select
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 capitalize"
+                  {...register("level", { required: "Level is required" })}
+                >
+                  <option value="">Select difficulty level</option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                  <option value="expert">Expert</option>
+                </select>
+                {errors.level && (
+                  <p className="text-error text-xs mt-1">
+                    {errors.level.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>

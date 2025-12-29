@@ -7,6 +7,7 @@ import {
   HiOutlineChartBar,
   HiOutlineCog,
 } from "react-icons/hi";
+import { FaClipboardList } from "react-icons/fa";
 
 const Sidebar = () => {
   const menuItems = [
@@ -35,6 +36,7 @@ const Sidebar = () => {
       icon: HiOutlineAcademicCap,
       end: false,
     },
+  
     {
       name: "Settings",
       path: "/dashboard/settings",

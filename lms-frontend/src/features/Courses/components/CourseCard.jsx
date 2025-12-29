@@ -1,23 +1,18 @@
 import PropTypes from "prop-types";
 import Card from "../../../shared/components/Card";
 import { FaStar } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../../../shared/components/Button";
 
-import { toast } from "react-toastify";
-
 const CourseCard = ({ course }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const handleEnroll = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toast.success(
-      `${t("courses.enroll_success") || "Successfully enrolled in"} ${
-        course.title
-      }!`
-    );
+    navigate(`/checkout/${course._id}`);
   };
 
   return (

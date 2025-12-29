@@ -7,6 +7,8 @@ import {
   FaClock,
   FaChevronDown,
   FaChevronUp,
+  FaClipboardList,
+  FaQuestionCircle,
 } from "react-icons/fa";
 import Button from "../../../shared/components/Button";
 import ConfirmModal from "../../../shared/components/ConfirmModal";
@@ -22,10 +24,23 @@ import {
   useDeleteLesson,
   useLessonsByLecture,
 } from "../../../hooks/useLessons";
+import {
+  useAssignmentsByCourse,
+  useCreateAssignment,
+  useUpdateAssignment,
+  useDeleteAssignment,
+  useCreateQuestion,
+  useUpdateQuestion,
+  useDeleteQuestion,
+  useAssignmentsByLecture,
+  useQuestionsByAssignment,
+} from "../../../hooks/useAssignments";
 import CloudinaryService from "../../../services/CloudinaryService";
 import notification from "../../../utils/notification";
 import LectureForm from "./LectureForm";
 import LessonForm from "./LessonForm";
+import AssignmentForm from "./AssignmentForm";
+import QuestionForm from "./QuestionForm";
 
 const CurriculumManager = ({ courseId }) => {
   const [expandedLectures, setExpandedLectures] = useState({});
@@ -33,6 +48,11 @@ const CurriculumManager = ({ courseId }) => {
   const [editingLectureId, setEditingLectureId] = useState(null);
   const [addingLessonToLectureId, setAddingLessonToLectureId] = useState(null);
   const [editingLessonId, setEditingLessonId] = useState(null);
+
+  // Assignment States
+  const [addingAssignmentToLectureId, setAddingAssignmentToLectureId] =
+    useState(null);
+  const [editingAssignmentId, setEditingAssignmentId] = useState(null);
 
   // Deletion Modal State
   const [deleteModal, setDeleteModal] = useState({
@@ -45,6 +65,10 @@ const CurriculumManager = ({ courseId }) => {
 
   const { data: lectures = [], isLoading: isLoadingLectures } =
     useLecturesByCourse(courseId);
+
+  // Fetch all assignments for the course
+  const { data: courseAssignments = [], isLoading: isLoadingAssignments } =
+    useAssignmentsByCourse(courseId);
 
   const { mutate: createLecture, isPending: isCreatingLecture } =
     useCreateLecture({
@@ -125,6 +149,45 @@ const CurriculumManager = ({ courseId }) => {
     }
   );
 
+  // --- Assignment Mutations ---
+  const { mutate: createAssignment, isPending: isCreatingAssignment } =
+    useCreateAssignment({
+      onSuccess: () => {
+        notification.success("Assignment created successfully!");
+        setAddingAssignmentToLectureId(null);
+      },
+      onError: (err) =>
+        notification.error(
+          err?.response?.data?.message || "Failed to create assignment"
+        ),
+    });
+
+  const { mutate: updateAssignment, isPending: isUpdatingAssignment } =
+    useUpdateAssignment({
+      onSuccess: () => {
+        notification.success("Assignment updated!");
+        setEditingAssignmentId(null);
+      },
+      onError: (err) =>
+        notification.error(
+          err?.response?.data?.message || "Failed to update assignment"
+        ),
+    });
+
+  const { mutate: deleteAssignment, isPending: isDeletingAssignment } =
+    useDeleteAssignment({
+      onSuccess: () => {
+        notification.success("Assignment deleted!");
+        closeDeleteModal();
+      },
+      onError: (err) => {
+        notification.error(
+          err?.response?.data?.message || "Failed to delete assignment"
+        );
+        closeDeleteModal();
+      },
+    });
+
   const closeDeleteModal = () => {
     setDeleteModal((prev) => ({ ...prev, isOpen: false, isLoading: false }));
   };
@@ -181,6 +244,28 @@ const CurriculumManager = ({ courseId }) => {
 
   const handleEditLessonSubmit = (data, lesson) => {
     updateLesson({ id: lesson._id, data: { ...lesson, ...data } });
+  };
+
+  // --- Assignment Handlers ---
+
+  const handleAddAssignmentSubmit = (data, lectureId) => {
+    createAssignment({
+      ...data,
+      lecture: lectureId,
+    });
+  };
+
+  const handleDeleteAssignment = (assignment) => {
+    setDeleteModal({
+      isOpen: true,
+      title: "Delete Assignment",
+      message: `Are you sure you want to delete assignment "${assignment.title}"?`,
+      onConfirm: () => {
+        setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+        deleteAssignment(assignment._id);
+      },
+      isLoading: false,
+    });
   };
 
   return (
@@ -281,7 +366,7 @@ const CurriculumManager = ({ courseId }) => {
 
                 {expandedLectures[lecture._id] &&
                   editingLectureId !== lecture._id && (
-                    <LectureLessons
+                    <LectureContent
                       lectureId={lecture._id}
                       updateLesson={updateLesson}
                       deleteLesson={handleDeleteLesson}
@@ -293,6 +378,23 @@ const CurriculumManager = ({ courseId }) => {
                       setEditingLessonId={setEditingLessonId}
                       handleEditLessonSubmit={handleEditLessonSubmit}
                       isUpdatingLesson={isUpdatingLesson}
+                      // Assignment Props
+                      assignments={courseAssignments.filter(
+                        (a) =>
+                          a.lecture === lecture._id ||
+                          a.lectureId === lecture._id
+                      )}
+                      addingAssignmentToLectureId={addingAssignmentToLectureId}
+                      setAddingAssignmentToLectureId={
+                        setAddingAssignmentToLectureId
+                      }
+                      handleAddAssignmentSubmit={handleAddAssignmentSubmit}
+                      isCreatingAssignment={isCreatingAssignment}
+                      editingAssignmentId={editingAssignmentId}
+                      setEditingAssignmentId={setEditingAssignmentId}
+                      updateAssignment={updateAssignment}
+                      isUpdatingAssignment={isUpdatingAssignment}
+                      deleteAssignment={handleDeleteAssignment}
                     />
                   )}
               </div>
@@ -308,14 +410,17 @@ const CurriculumManager = ({ courseId }) => {
         onConfirm={deleteModal.onConfirm}
         onCancel={closeDeleteModal}
         isLoading={
-          deleteModal.isLoading || isDeletingLecture || isDeletingLesson
+          deleteModal.isLoading ||
+          isDeletingLecture ||
+          isDeletingLesson ||
+          isDeletingAssignment
         }
       />
     </div>
   );
 };
 
-const LectureLessons = ({
+const LectureContent = ({
   lectureId,
   updateLesson,
   deleteLesson,
@@ -327,72 +432,140 @@ const LectureLessons = ({
   setEditingLessonId,
   handleEditLessonSubmit,
   isUpdatingLesson,
+  // Assignments
+  addingAssignmentToLectureId,
+  setAddingAssignmentToLectureId,
+  handleAddAssignmentSubmit,
+  isCreatingAssignment,
+  editingAssignmentId,
+  setEditingAssignmentId,
+  updateAssignment,
+  isUpdatingAssignment,
+  deleteAssignment,
 }) => {
   const { data: lessons = [], isLoading } = useLessonsByLecture(lectureId);
-
+  const { data: assignments = [] } = useAssignmentsByLecture(lectureId);
   return (
-    <div className="p-4 border-t border-border space-y-3 bg-background/5">
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="p-3 bg-surface border border-border rounded-lg animate-pulse h-12"
-            ></div>
-          ))}
-        </div>
-      ) : lessons.length > 0 ? (
-        [...lessons]
-          .sort((a, b) => a.order - b.order)
-          .map((lesson) => (
-            <div key={lesson._id}>
-              {editingLessonId === lesson._id ? (
-                <LessonForm
-                  initialData={{
-                    title: lesson.title,
-                    description: lesson.description,
-                    duration: lesson.duration,
-                    videoUrl: lesson.videoUrl,
-                  }}
-                  onSubmit={(data) => handleEditLessonSubmit(data, lesson)}
-                  onCancel={() => setEditingLessonId(null)}
-                  isLoading={isUpdatingLesson}
+    <div className="p-4 border-t border-border space-y-4 bg-background/5">
+      {/* Lessons Section */}
+      <div className="space-y-3">
+        <h4 className="text-xs font-bold text-text-muted uppercase tracking-wider">
+          Lessons
+        </h4>
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="p-3 bg-surface border border-border rounded-lg animate-pulse h-12"
+              ></div>
+            ))}
+          </div>
+        ) : lessons.length > 0 ? (
+          [...lessons]
+            .sort((a, b) => a.order - b.order)
+            .map((lesson) => (
+              <div key={lesson._id}>
+                {editingLessonId === lesson._id ? (
+                  <LessonForm
+                    initialData={{
+                      title: lesson.title,
+                      description: lesson.description,
+                      duration: lesson.duration,
+                      videoUrl: lesson.videoUrl,
+                    }}
+                    onSubmit={(data) => handleEditLessonSubmit(data, lesson)}
+                    onCancel={() => setEditingLessonId(null)}
+                    isLoading={isUpdatingLesson}
+                  />
+                ) : (
+                  <LessonItem
+                    lesson={lesson}
+                    updateLesson={updateLesson}
+                    deleteLesson={deleteLesson}
+                    onEdit={() => setEditingLessonId(lesson._id)}
+                  />
+                )}
+              </div>
+            ))
+        ) : (
+          <p className="text-center text-xs text-text-muted py-2">
+            No lessons in this lecture.
+          </p>
+        )}
+
+        {addingLessonToLectureId === lectureId ? (
+          <LessonForm
+            onSubmit={(data) =>
+              handleAddLessonSubmit(data, lectureId, lessons.length)
+            }
+            onCancel={() => setAddingLessonToLectureId(null)}
+            isLoading={isCreatingLesson}
+          />
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            fullWidth
+            className="border-dashed flex items-center justify-center gap-2 hover:bg-primary/5 hover:border-primary transition-all"
+            onClick={() => setAddingLessonToLectureId(lectureId)}
+          >
+            <FaPlus /> Add Lesson
+          </Button>
+        )}
+      </div>
+
+      {/* Assignments Section */}
+      <div className="pt-4 border-t border-border space-y-3">
+        <h4 className="text-xs font-bold text-text-muted uppercase tracking-wider">
+          Assignments
+        </h4>
+
+        {assignments.length > 0 ? (
+          assignments.map((assignment) => (
+            <div key={assignment._id}>
+              {editingAssignmentId === assignment._id ? (
+                <AssignmentForm
+                  initialData={assignment}
+                  onSubmit={(data) =>
+                    updateAssignment({ id: assignment._id, data })
+                  }
+                  onCancel={() => setEditingAssignmentId(null)}
+                  isLoading={isUpdatingAssignment}
                 />
               ) : (
-                <LessonItem
-                  lesson={lesson}
-                  updateLesson={updateLesson}
-                  deleteLesson={deleteLesson}
-                  onEdit={() => setEditingLessonId(lesson._id)}
+                <AssignmentItem
+                  assignment={assignment}
+                  onEdit={() => setEditingAssignmentId(assignment._id)}
+                  onDelete={() => deleteAssignment(assignment)}
                 />
               )}
             </div>
           ))
-      ) : (
-        <p className="text-center text-xs text-text-muted py-2">
-          No lessons in this lecture.
-        </p>
-      )}
+        ) : (
+          <p className="text-center text-xs text-text-muted py-2">
+            No assignments.
+          </p>
+        )}
 
-      {addingLessonToLectureId === lectureId ? (
-        <LessonForm
-          onSubmit={(data) =>
-            handleAddLessonSubmit(data, lectureId, lessons.length)
-          }
-          onCancel={() => setAddingLessonToLectureId(null)}
-          isLoading={isCreatingLesson}
-        />
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          fullWidth
-          className="border-dashed flex items-center justify-center gap-2 hover:bg-primary/5 hover:border-primary transition-all"
-          onClick={() => setAddingLessonToLectureId(lectureId)}
-        >
-          <FaPlus /> Add Lesson
-        </Button>
-      )}
+        {addingAssignmentToLectureId === lectureId ? (
+          <AssignmentForm
+            onSubmit={(data) => handleAddAssignmentSubmit(data, lectureId)}
+            onCancel={() => setAddingAssignmentToLectureId(null)}
+            isLoading={isCreatingAssignment}
+          />
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            fullWidth
+            className="border-dashed flex items-center justify-center gap-2 hover:bg-accent/5 hover:border-accent transition-all text-accent"
+            onClick={() => setAddingAssignmentToLectureId(lectureId)}
+          >
+            <FaClipboardList /> Add Assignment
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
@@ -466,6 +639,197 @@ const LessonItem = ({ lesson, updateLesson, deleteLesson, onEdit }) => {
           <FaTrash className="text-error" />
         </Button>
       </div>
+    </div>
+  );
+};
+
+const AssignmentItem = ({ assignment, onEdit, onDelete }) => {
+  const [isExpanding, setIsExpanding] = useState(false);
+  const [addingQuestion, setAddingQuestion] = useState(false);
+
+  // Question mutations
+  const { mutate: createQuestion, isPending: isCreatingQuestion } =
+    useCreateQuestion({
+      onSuccess: () => {
+        notification.success("Question created!");
+        setAddingQuestion(false);
+      },
+    });
+
+  const { mutate: deleteQuestion } = useDeleteQuestion({
+    onSuccess: () => notification.success("Question deleted!"),
+  });
+
+  const { mutate: updateQuestion, isPending: isUpdatingQuestion } =
+    useUpdateQuestion({
+      onSuccess: () => notification.success("Question updated!"),
+    });
+
+  // Assignments questions would ideally be in the 'assignment' object if populated, or we fetch them.
+  // Assuming backend returns 'questions' array in assignment for now, or we fetch separate?
+  // Assignment.md endpoint Get Assignment by ID returns structure without questions array explicitly shown in docs?
+  // "Question Services" exist separately.
+  // Fetching assignment details (with questions) is better? Or passing from parent?
+  // Let's assume we need to use 'useAssignment' to get full details including questions as standard list endpoints might be light.
+  // However, for simplified UX here, I'll rely on what's passed or fetched if expanding.
+
+  // For now, let's implement the UI assuming we might need to fetch questions if expanded.
+
+  return (
+    <div className="p-3 bg-surface border border-border rounded-lg group hover:border-accent/30 transition-all">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent text-xs font-bold">
+            <FaClipboardList />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-text-main">
+              {assignment.title}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 transition-opacity">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanding(!isExpanding)}
+            title="Manage Questions"
+          >
+            <FaQuestionCircle className="text-success" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onEdit}
+            title="Edit Assignment"
+          >
+            <FaEdit className="text-info" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDelete}
+            title="Delete Assignment"
+          >
+            <FaTrash className="text-error" />
+          </Button>
+        </div>
+      </div>
+
+      {isExpanding && (
+        <div className="mt-4 pl-4 border-l-2 border-accent/20">
+          <AssignmentQuestionsManager
+            assignmentId={assignment._id}
+            isAdding={addingQuestion}
+            setIsAdding={setAddingQuestion}
+            createQuestion={createQuestion}
+            isCreatingQuestion={isCreatingQuestion}
+            deleteQuestion={deleteQuestion}
+            updateQuestion={updateQuestion}
+            isUpdatingQuestion={isUpdatingQuestion}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Separate component to handle fetching questions for an assignment when expanded
+
+const AssignmentQuestionsManager = ({
+  assignmentId,
+  isAdding,
+  setIsAdding,
+  createQuestion,
+  isCreatingQuestion,
+  deleteQuestion,
+  updateQuestion,
+  isUpdatingQuestion,
+}) => {
+  const { data: questions = [], isLoading } =
+    useQuestionsByAssignment(assignmentId);
+  const [editingQuestionId, setEditingQuestionId] = useState(null);
+
+  const handleUpdateSubmit = (data) => {
+    updateQuestion({ id: editingQuestionId, data });
+    setEditingQuestionId(null);
+  };
+
+  return (
+    <div className="space-y-3">
+      <h5 className="text-xs font-bold text-text-muted">Questions</h5>
+      {isLoading ? (
+        <p className="text-xs">Loading questions...</p>
+      ) : (
+        <div className="space-y-2">
+          {questions.map((q, idx) => (
+            <div key={q._id || idx}>
+              {editingQuestionId === q._id ? (
+                <QuestionForm
+                  initialData={q}
+                  assignment={assignmentId}
+                  onSubmit={handleUpdateSubmit}
+                  onCancel={() => setEditingQuestionId(null)}
+                  isLoading={isUpdatingQuestion}
+                />
+              ) : (
+                <div className="flex justify-between items-center p-2 bg-background rounded text-sm border border-border">
+                  <span>
+                    {idx + 1}. {q.title}
+                  </span>
+                  <div className="flex gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingQuestionId(q._id)}
+                      className="text-info w-8 h-8"
+                      title="Edit Question"
+                    >
+                      <FaEdit />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteQuestion(q._id)}
+                      className="text-error w-8 h-8"
+                      title="Delete Question"
+                    >
+                      <FaTrash />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          {questions.length === 0 && (
+            <p className="text-xs text-text-muted italic">
+              No questions added.
+            </p>
+          )}
+        </div>
+      )}
+
+      {isAdding ? (
+        <QuestionForm
+          assignment={assignmentId}
+          onSubmit={(data) =>
+            createQuestion({ ...data, assignment: assignmentId })
+          }
+          onCancel={() => setIsAdding(false)}
+          isLoading={isCreatingQuestion}
+        />
+      ) : (
+        !editingQuestionId && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-xs flex items-center gap-1 text-primary"
+            onClick={() => setIsAdding(true)}
+          >
+            <FaPlus size={10} /> Add Question
+          </Button>
+        )
+      )}
     </div>
   );
 };

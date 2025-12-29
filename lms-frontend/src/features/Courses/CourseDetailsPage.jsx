@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useCourse } from "../../hooks/useCourses";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,20 +11,22 @@ import {
   FaChevronUp,
   FaPlayCircle,
   FaCalendarAlt,
+  FaClipboardList,
 } from "react-icons/fa";
 import { useState } from "react";
 import Button from "../../shared/components/Button";
-import { toast } from "react-toastify";
 import {
   formatDuration,
   formatDurationVerbose,
 } from "../../utils/formatDuration";
+import { useAssignmentsByCourse } from "../../hooks/useAssignments";
 
 const CourseDetailsPage = () => {
   const { courseId } = useParams();
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   const { data: course, isLoading, isError } = useCourse(courseId);
+  const { data: assignments = [] } = useAssignmentsByCourse(courseId);
   const [expandedLectures, setExpandedLectures] = useState({});
 
   const toggleLecture = (lectureId) => {
@@ -34,8 +36,10 @@ const CourseDetailsPage = () => {
     }));
   };
 
+  const navigate = useNavigate();
+
   const handleEnroll = () => {
-    toast.success(`${t("courses.enroll_success")} ${course.title}!`);
+    navigate(`/checkout/${course._id}`);
   };
 
   if (isLoading) {
@@ -49,13 +53,9 @@ const CourseDetailsPage = () => {
   if (isError || !course) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <h2 className="heading-l text-error mb-4">
-          {t("course_details.error_loading")}
-        </h2>
+        <h2 className="heading-l text-error mb-4">Error loading course</h2>
         <Link to="/courses">
-          <Button variant="primary">
-            {t("course_details.back_to_courses")}
-          </Button>
+          <Button variant="primary">Back to Courses</Button>
         </Link>
       </div>
     );
@@ -67,7 +67,7 @@ const CourseDetailsPage = () => {
       0
     ) || 0;
   // Use the course duration from API (in seconds)
-  const totalDuration = course.duration || 0;
+  const totalDuration = course.totalDuration || 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,7 +85,7 @@ const CourseDetailsPage = () => {
             <FaChevronLeft
               className={`${isRtl ? "rotate-180" : ""} mr-2 rtl:ml-2 rtl:mr-0`}
             />
-            {t("course_details.back_to_courses")}
+            Back to Courses
           </Link>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
@@ -98,9 +98,6 @@ const CourseDetailsPage = () => {
               <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                 {course.title}
               </h1>
-              <p className="text-xl text-white/80 mb-8 max-w-2xl leading-relaxed">
-                {course.description}
-              </p>
 
               <div className="flex flex-wrap gap-6 items-center">
                 <div className="flex items-center gap-3">
@@ -115,34 +112,35 @@ const CourseDetailsPage = () => {
                     />
                   </div>
                   <div>
-                    <p className="text-sm text-white/60">
-                      {t("course_details.instructor")}
-                    </p>
+                    <p className="text-sm text-white/60">Instructor</p>
                     <p className="font-semibold">{course.instructor?.name}</p>
                   </div>
                 </div>
-
                 <div className="h-10 w-px bg-white/20 hidden md:block"></div>
-
                 <div className="flex items-center gap-2">
                   <FaClock className="text-white/60" />
                   <span>{formatDuration(totalDuration).formatted}</span>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <FaBookOpen className="text-white/60" />
-                  <span>
-                    {totalLessons} {t("course_details.lessons")}
-                  </span>
+                  <span>{totalLessons} Lessons</span>
                 </div>
-
-                {course.startingAt && (
+                <>
+                  <div className="h-10 w-px bg-white/20 hidden md:block"></div>
+                  <div className="flex items-center gap-2">
+                    <FaCalendarAlt className="text-white/60" />
+                    <span>
+                      {new Date(course.startingAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </>
+                {course.level && (
                   <>
                     <div className="h-10 w-px bg-white/20 hidden md:block"></div>
                     <div className="flex items-center gap-2">
-                      <FaCalendarAlt className="text-white/60" />
-                      <span>
-                        {new Date(course.startingAt).toLocaleDateString()}
+                      {/* Using Tag icon or similar for level */}
+                      <span className="bg-white/10 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-white/20">
+                        {course.level}
                       </span>
                     </div>
                   </>
@@ -178,11 +176,11 @@ const CourseDetailsPage = () => {
                     className="w-full py-4 text-lg font-bold shadow-lg shadow-primary/20 mb-4"
                     onClick={handleEnroll}
                   >
-                    {t("course_details.enroll_now")}
+                    Enroll Now
                   </Button>
 
                   <p className="text-center text-text-muted text-sm italic">
-                    {t("course_details.last_updated")}:{" "}
+                    {"Last Updated"}:{" "}
                     {new Date(course.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -199,7 +197,7 @@ const CourseDetailsPage = () => {
           <div className="lg:col-span-2">
             <h2 className="heading-l text-primary mb-8 flex items-center gap-3">
               <div className="w-2 h-8 bg-accent rounded-full"></div>
-              {t("course_details.curriculum")}
+              Curriculum
             </h2>
 
             <div className="space-y-4">
@@ -223,8 +221,7 @@ const CourseDetailsPage = () => {
                             {lecture.title}
                           </h3>
                           <p className="text-xs text-text-muted">
-                            {lecture.lessons?.length || 0}{" "}
-                            {t("course_details.lessons")}
+                            {lecture.lessons?.length || 0} lessons
                           </p>
                         </div>
                       </div>
@@ -237,6 +234,7 @@ const CourseDetailsPage = () => {
 
                     {expandedLectures[lecture._id] && (
                       <div className="border-t border-border bg-background/30">
+                        {/* Lessons */}
                         {lecture.lessons
                           ?.sort((a, b) => a.order - b.order)
                           .map((lesson) => (
@@ -256,6 +254,32 @@ const CourseDetailsPage = () => {
                               </span>
                             </Link>
                           ))}
+
+                        {/* Assignments */}
+                        {assignments &&
+                          assignments
+                            .filter(
+                              (a) =>
+                                a.lecture === lecture._id ||
+                                a.lectureId === lecture._id
+                            ) // Handle both potential backend responses
+                            .map((assignment) => (
+                              <Link
+                                key={assignment._id}
+                                to={`/courses/${courseId}/assignments/${assignment._id}`}
+                                className="px-6 py-4 flex items-center justify-between border-b border-border last:border-0 hover:bg-white transition-colors cursor-pointer bg-accent/5"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <FaClipboardList className="text-accent" />
+                                  <span className="text-sm font-medium text-text-main">
+                                    {assignment.title}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-text-muted font-mono bg-accent/10 px-2 py-1 rounded">
+                                  Assignment
+                                </span>
+                              </Link>
+                            ))}
                       </div>
                     )}
                   </div>
@@ -266,9 +290,7 @@ const CourseDetailsPage = () => {
           {/* Right Column / About Instructor / Other info */}
           <div className="lg:col-span-1">
             <div className="bg-surface border border-border rounded-3xl p-8 mb-8 shadow-sm">
-              <h3 className="heading-m text-primary mb-6">
-                {t("course_details.instructor")}
-              </h3>
+              <h3 className="heading-m text-primary mb-6">Instructor</h3>
               <div className="flex flex-col items-center text-center">
                 <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-primary/10">
                   <img
