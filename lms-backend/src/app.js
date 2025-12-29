@@ -30,11 +30,10 @@ app.use("/lessons", require("./routes/lessonRoutes"));
 app.use("/assignments", require("./routes/assignmentRoutes"));
 app.use("/questions", require("./routes/questionRoutes"));
 app.use("/answers", require("./routes/answerRoutes"));
-app.use("/exam-attempts", require("./routes/examAttemptRoutes"));
-app.use("/assignment-attempts", require("./routes/assignmentAttemptRoutes"));
 app.use("/course-tags", require("./routes/courseTagRoutes"));
-app.use("/exams", require("./routes/examRoutes"));
 app.use("/sessions", require("./routes/liveSessionRoutes"));
+app.use("/comments", require("./routes/commentRoutes"));
+app.use("/payments", require("./routes/paymentRoutes"));
 
 // 404 handler - must be after all other routes
 app.use((req, res) => {

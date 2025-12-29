@@ -6,6 +6,7 @@ const courseValidator = joi.object({
   imageUrl: joi.string(),
   price: joi.number().required(),
   tag: joi.string().required(),
+  level: joi.string().valid("beginner", "intermediate", "advanced", "expert").required(),
 });
 
 module.exports = courseValidator;

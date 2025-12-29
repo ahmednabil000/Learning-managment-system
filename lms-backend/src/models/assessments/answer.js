@@ -7,19 +7,19 @@ const answerSchema = new mongoose.Schema(
       type: String,
       default: uuidv4,
     },
-    question: { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
+    question: { type: String, ref: "Question" },
     assignmentAttempt: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "AssignmentAttempt",
     },
     examAttempt: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "ExamAttempt",
     },
     type: String,
     value: String,
     isCorrect: Boolean,
-    submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
+    submittedBy: { type: String, ref: "Student" },
     points: Number,
   },
   { timestamps: true }

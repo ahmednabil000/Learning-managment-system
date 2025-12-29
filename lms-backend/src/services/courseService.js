@@ -29,8 +29,10 @@ exports.getCourseById = async (id) => {
     };
   });
 
-  course.lectures = lecturesWithLessons;
+  const totalDuration = lessons.reduce((acc, value) => acc + value.duration, 0);
 
+  course.lectures = lecturesWithLessons;
+  course.totalDuration = totalDuration;
   return course;
 };
 
@@ -62,6 +64,7 @@ exports.createCourse = async ({
   imageUrl,
   instructor,
   tag,
+  level,
 }) => {
   // Find the tag by id to get its ObjectId
   const courseTag = await CourseTag.findOne({ _id: tag });
@@ -76,6 +79,7 @@ exports.createCourse = async ({
     imageUrl,
     instructor,
     tag: courseTag._id,
+    level,
   });
   return course;
 };
@@ -88,6 +92,7 @@ exports.updateCourse = async ({
   imageUrl,
   tag,
   instructor,
+  level,
 }) => {
   const course = await Course.findOne({ _id: id });
   if (!course) {
@@ -106,6 +111,7 @@ exports.updateCourse = async ({
   course.imageUrl = imageUrl;
   course.instructor = instructor;
   course.tag = courseTag._id;
+  course.level = level;
 
   await course.save();
 

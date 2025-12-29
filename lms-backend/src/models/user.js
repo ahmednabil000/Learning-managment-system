@@ -34,14 +34,7 @@ const instructorSchema = new mongoose.Schema({});
 const Instructor = User.discriminator("Instructor", instructorSchema);
 
 // Student Discriminator
-const studentSchema = new mongoose.Schema({
-  enrolledCourses: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-    },
-  ],
-});
+const studentSchema = new mongoose.Schema({});
 const Student = User.discriminator("Student", studentSchema);
 
 const Admin = User.discriminator("Admin", new mongoose.Schema({}));

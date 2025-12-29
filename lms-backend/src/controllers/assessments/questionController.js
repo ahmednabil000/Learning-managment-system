@@ -1,16 +1,22 @@
 const questionService = require("../../services/assesments/questionService");
 const questionValidator = require("../../validations/assessments/questionValidator");
 const paginationValidator = require("../../validations/paginationValidator");
-
+const logger = require("../../config/logger");
 module.exports.createQuestion = async (req, res) => {
   try {
+    logger.info("Start creating question");
     const { error, value } = questionValidator.validate(req.body);
+    console.log(value);
+    
     if (error) {
+      logger.error(error.details[0].message);
       return res.status(400).json({ message: error.details[0].message });
     }
     const question = await questionService.createQuestion(value);
+    logger.info("Question created successfully");
     return res.status(201).json(question);
   } catch (error) {
+    logger.error(error.message);
     return res.status(500).json({ message: error.message });
   }
 };
@@ -29,17 +35,20 @@ module.exports.getQuestionById = async (req, res) => {
 
 module.exports.getQuestions = async (req, res) => {
   try {
+    logger.info("Start fetching questions");
     const { error, value } = paginationValidator.validate(req.query);
     if (error) {
+      logger.error(error.details[0].message);
       return res.status(400).json({ message: error.details[0].message });
     }
     const { page, pageCount, search } = value;
-
+    logger.info("End fetching questions");
     const questions = await questionService.getQuestions(
       page,
       pageCount,
       search
     );
+    logger.info("End fetching questions");
     const totalItems = questions.length;
     const totalPages = Math.ceil(totalItems / pageCount);
 
@@ -145,6 +154,32 @@ module.exports.removeQuestionFromExam = async (req, res) => {
       return res.status(404).json({ message: "Question not found" });
     }
     return res.status(200).json(question);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getQuestionsByAssignmentId = async (req, res) => {
+  try {
+    logger.info("Start fetching questions by assignment id");
+    const questions = await questionService.getQuestionsByAssignmentId(
+      req.params.assignmentId
+    );
+    logger.info("End fetching questions by assignment id");
+    return res.status(200).json(questions);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getQuestionsByExamId = async (req, res) => {
+  try {
+    logger.info("Start fetching questions by exam id");
+    const questions = await questionService.getQuestionsByExamId(
+      req.params.examId
+    );
+    logger.info("End fetching questions by exam id");
+    return res.status(200).json(questions);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

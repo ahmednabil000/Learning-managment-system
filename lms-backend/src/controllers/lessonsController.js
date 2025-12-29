@@ -1,6 +1,6 @@
 const lessonService = require("../services/lessonService");
 const lessonValidator = require("../validations/courses/lessonValidator");
-
+const logger = require("../config/logger");
 module.exports.createLesson = async (req, res) => {
   try {
     const { error, value } = lessonValidator.validate(req.body);
@@ -50,7 +50,11 @@ module.exports.getLessonById = async (req, res) => {
 
 module.exports.getLessonsByLectureId = async (req, res) => {
   try {
-    const lessons = await lessonService.getLessonsByLectureId(req.params.id);
+    logger.info(`Start fetching lessons for lecture :${req.params.lectureId}`);
+    const lessons = await lessonService.getLessonsByLectureId(
+      req.params.lectureId
+    );
+    console.log(lessons);
     return res.status(200).json(lessons);
   } catch (error) {
     return res.status(500).json({ message: error.message });

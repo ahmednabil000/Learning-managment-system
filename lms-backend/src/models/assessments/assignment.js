@@ -8,7 +8,7 @@ const assignmentSchema = new mongoose.Schema(
       default: uuidv4,
     },
     title: String,
-    lecture: { type: mongoose.Schema.Types.ObjectId, ref: "Lecture" },
+    lecture: { type: String, ref: "Lecture" },
     totalPoints: Number,
   },
   { timestamps: true }

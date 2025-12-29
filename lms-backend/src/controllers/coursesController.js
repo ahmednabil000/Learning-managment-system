@@ -32,6 +32,7 @@ exports.getCourses = async (req, res) => {
       description: course.description,
       price: course.price,
       imageUrl: course.imageUrl,
+      level: course.level,
     }));
 
     res.json({
@@ -57,7 +58,7 @@ exports.createCourse = async (req, res) => {
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
-    const { title, description, price, imageUrl, tag } = value;
+    const { title, description, price, imageUrl, tag, level } = value;
 
     const course = await courseService.createCourse({
       title,
@@ -66,6 +67,7 @@ exports.createCourse = async (req, res) => {
       imageUrl,
       instructor: req.user.id,
       tag,
+      level,
     });
     res.status(201).json(course);
   } catch (error) {
@@ -80,7 +82,7 @@ exports.updateCourseById = async (req, res) => {
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
-    const { title, description, price, imageUrl, tag } = value;
+    const { title, description, price, imageUrl, tag, level } = value;
 
     const course = await courseService.updateCourse({
       id: req.params.id,
@@ -90,6 +92,7 @@ exports.updateCourseById = async (req, res) => {
       tag,
       imageUrl,
       instructor: req.user.id,
+      level,
     });
     res.json(course);
   } catch (error) {

@@ -23,4 +23,13 @@ router.delete(
 router.post("/exam/:examId", questionController.addQuestionToExam);
 router.delete("/:questionId/exam", questionController.removeQuestionFromExam);
 
+// Assignment-specific routes
+router.get(
+  "/assignment/:assignmentId",
+  questionController.getQuestionsByAssignmentId
+);
+
+// Exam-specific routes
+router.get("/exam/:examId", questionController.getQuestionsByExamId);
+
 module.exports = router;

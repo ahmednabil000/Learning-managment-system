@@ -20,6 +20,12 @@ const courseSchema = new mongoose.Schema(
       ref: "CourseTag",
       required: true,
     },
+    level: {
+      type: String,
+      enum: ["beginner", "intermediate", "advanced", "expert"],
+      default: "beginner",
+      required: true,
+    },
   },
   {
     timestamps: true,

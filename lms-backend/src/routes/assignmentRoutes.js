@@ -2,8 +2,13 @@ const express = require("express");
 const router = express.Router();
 const assignmentController = require("../controllers/assessments/assignmentController");
 
+router.get("/by-course", assignmentController.getAssignmentsByCourseId);
 router.post("/", assignmentController.createAssignment);
 router.get("/", assignmentController.getAssignments);
+router.get(
+  "/by-lecture/:lectureId",
+  assignmentController.getAssignmentsByLectureId
+);
 router.get("/:id", assignmentController.getAssignmentById);
 router.put("/:id", assignmentController.updateAssignment);
 router.delete("/:id", assignmentController.deleteAssignment);

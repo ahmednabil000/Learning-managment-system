@@ -17,8 +17,8 @@ exports.createQuestion = async ({
   options,
   correctAnswer,
   points,
-  assignmentId,
-  examId,
+  assignment,
+  exam,
 }) => {
   return await Question.create({
     title,
@@ -26,8 +26,8 @@ exports.createQuestion = async ({
     options,
     correctAnswer,
     points,
-    assignment: assignmentId || null,
-    exam: examId || null,
+    assignment: assignment || null,
+    exam: exam || null,
   });
 };
 
@@ -91,4 +91,13 @@ exports.removeQuestionFromExam = async (questionId) => {
     { exam: null },
     { new: true }
   );
+};
+
+exports.getQuestionsByAssignmentId = async (assignmentId) => {
+  console.log(assignmentId);
+  return await Question.find({ assignment: assignmentId });
+};
+
+exports.getQuestionsByExamId = async (examId) => {
+  return await Question.find({ exam: examId });
 };
