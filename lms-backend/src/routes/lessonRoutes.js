@@ -6,12 +6,14 @@ const {
   getLessonById,
   getLessonsByLectureId,
 } = require("../controllers/lessonsController");
+const authMiddleware = require("../middlewares/authMiddleware");
+const optionalAuthMiddleware = require("../middlewares/optionalAuthMiddleware");
 const router = express.Router();
 
-router.post("/", createLesson);
-router.put("/:id", updateLesson);
-router.delete("/:id", deleteLesson);
-router.get("/:id", getLessonById);
+router.post("/", authMiddleware, createLesson);
+router.put("/:id", authMiddleware, updateLesson);
+router.delete("/:id", authMiddleware, deleteLesson);
+router.get("/:id", optionalAuthMiddleware, getLessonById);
 router.get("/:lectureId/lessons", getLessonsByLectureId);
 
 module.exports = router;

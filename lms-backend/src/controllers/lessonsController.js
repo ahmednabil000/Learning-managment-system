@@ -41,8 +41,13 @@ module.exports.deleteLesson = async (req, res) => {
 
 module.exports.getLessonById = async (req, res) => {
   try {
-    const lesson = await lessonService.getLessonById(req.params.id);
-    return res.status(200).json(lesson);
+    const userId = req.user ? req.user.id : null;
+    const result = await lessonService.getLessonById(req.params.id, userId);
+
+    if (result.status !== 200) {
+      return res.status(result.status).json({ message: result.message });
+    }
+    return res.status(200).json(result.lesson);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

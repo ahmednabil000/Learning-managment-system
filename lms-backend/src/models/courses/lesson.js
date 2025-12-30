@@ -13,9 +13,18 @@ const lessonSchema = new mongoose.Schema(
       ref: "Lecture",
       required: true,
     },
+    course: {
+      type: String,
+      ref: "Course",
+      required: true,
+    },
     videoUrl: String,
     order: Number,
     duration: Number,
+    isOpen: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
