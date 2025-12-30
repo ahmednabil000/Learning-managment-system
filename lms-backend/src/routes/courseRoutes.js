@@ -8,5 +8,15 @@ router.get("/:id", coursesController.getCourseById);
 router.post("/", authMiddleware, coursesController.createCourse);
 router.put("/:id", authMiddleware, coursesController.updateCourseById);
 router.delete("/:id", authMiddleware, coursesController.deleteCourseById);
+router.post(
+  "/:courseId/discount",
+  authMiddleware,
+  coursesController.addCourseDiscount
+);
+router.delete(
+  "/:courseId/discount",
+  authMiddleware,
+  coursesController.removeCourseDiscount
+);
 
 module.exports = router;

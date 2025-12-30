@@ -34,6 +34,8 @@ app.use("/course-tags", require("./routes/courseTagRoutes"));
 app.use("/sessions", require("./routes/liveSessionRoutes"));
 app.use("/comments", require("./routes/commentRoutes"));
 app.use("/payments", require("./routes/paymentRoutes"));
+app.use("/analytics/instructor", require("./routes/instructorAnalyticsRoutes"));
+app.use("/course-comments", require("./routes/courseCommentRoutes"));
 
 // 404 handler - must be after all other routes
 app.use((req, res) => {

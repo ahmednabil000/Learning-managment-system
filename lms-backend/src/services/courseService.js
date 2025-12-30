@@ -1,5 +1,5 @@
 const { Course, Lecture, Lesson, CourseTag } = require("../models");
-const courseValidation = require("../validations/courses/courseValidator");
+const CourseSale = require("../models/courses/courseSale");
 
 exports.getCourseById = async (id) => {
   const course = await Course.findOne({ _id: id })
@@ -28,11 +28,20 @@ exports.getCourseById = async (id) => {
       ),
     };
   });
-
+  const courseSale = await CourseSale.findOne({
+    course: course._id,
+    status: "active",
+  }).lean();
+  console.log(courseSale);
+  if (courseSale) {
+    course.salePrice = courseSale.salePrice;
+    course.discount = courseSale.discount;
+  }
   const totalDuration = lessons.reduce((acc, value) => acc + value.duration, 0);
 
   course.lectures = lecturesWithLessons;
   course.totalDuration = totalDuration;
+
   return course;
 };
 
@@ -43,13 +52,27 @@ exports.getAllCourses = async (page, pageCount, search) => {
     .skip((page - 1) * pageCount)
     .limit(pageCount)
     .populate("instructor")
-    .populate("tag");
+    .populate("tag")
+    .lean();
 
   const totalItems = await Course.countDocuments({
     title: { $regex: search, $options: "i" },
   });
   const totalPages = Math.ceil(totalItems / pageCount);
+  const courseSales = await CourseSale.find({
+    course: { $in: courses.map((course) => course._id) },
+    status: "active",
+  });
+  console.log(courseSales);
+  courses.forEach((course) => {
+    const courseSale = courseSales.find((sale) => sale.course === course._id);
+    if (courseSale) {
+      course.salePrice = courseSale.salePrice;
+      course.discount = courseSale.discount;
+    }
+  });
 
+  console.log(courses);
   return {
     courses,
     totalItems,
@@ -127,4 +150,48 @@ exports.deleteCourse = async (id) => {
 
   await course.remove();
   return course;
+};
+
+module.exports.addCourseDiscount = async (userId, courseId, saleData) => {
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    return { statusCode: 404, message: "Course not found" };
+  }
+
+  if (course.instructor.toString() !== userId) {
+    return {
+      statusCode: 403,
+      message: "You are not authorized to add discount to this course",
+    };
+  }
+  const startDate = new Date(saleData.startDate);
+  const endDate = new Date(saleData.endDate);
+  const now = new Date();
+
+  const status = startDate <= now && endDate >= now ? "active" : "inactive";
+
+  const salePrice = course.price - (course.price * saleData.discount) / 100;
+
+  const courseSale = await CourseSale.create({
+    course: course._id,
+    user: userId,
+    salePrice,
+    discount: saleData.discount,
+    startDate,
+    endDate,
+    status,
+  });
+  return { statusCode: 200, message: "Course discount added successfully" };
+};
+
+module.exports.removeCourseDiscount = async (userId, courseId) => {
+  const course = await Course.findOne({ _id: courseId });
+  if (!course) {
+    return { statusCode: 404, message: "Course not found" };
+  }
+  const courseSale = await CourseSale.findOneAndDelete({
+    course: course._id,
+    user: userId,
+  });
+  return { statusCode: 200, message: "Course discount removed successfully" };
 };

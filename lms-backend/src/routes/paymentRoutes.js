@@ -6,6 +6,7 @@ const authMiddleware = require("../middlewares/authMiddleware");
 const Course = require("../models/courses/course");
 const UserEnroll = require("../models/UserEnroll");
 const logger = require("../config/logger");
+const CourseSale = require("../models/courses/courseSale");
 
 router.post("/create-payment-intent", authMiddleware, async (req, res) => {
   logger.info("Creating payment intent");
@@ -22,6 +23,10 @@ router.post("/create-payment-intent", authMiddleware, async (req, res) => {
       user: req.user.id,
       course: courseId,
     });
+    const courseSale = await CourseSale.findOne({
+      course: courseId,
+      status: "active",
+    });
     if (userEnroll) {
       return res
         .status(400)
@@ -29,7 +34,9 @@ router.post("/create-payment-intent", authMiddleware, async (req, res) => {
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(course.price * 100),
+      amount: Math.round(
+        courseSale ? courseSale.salePrice : course.price * 100
+      ),
       currency: "usd",
       metadata: {
         courseId,

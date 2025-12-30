@@ -1,6 +1,7 @@
 const courseService = require("../services/courseService");
 const paginationValidator = require("../validations/paginationValidator");
 const courseValidator = require("../validations/courses/courseValidator");
+const logger = require("../config/logger");
 
 exports.getCourseById = async (req, res) => {
   try {
@@ -17,6 +18,7 @@ exports.getCourseById = async (req, res) => {
 
 exports.getCourses = async (req, res) => {
   try {
+    logger.info("Fetching courses");
     const { error, value } = paginationValidator.validate(req.query);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
@@ -34,7 +36,7 @@ exports.getCourses = async (req, res) => {
       imageUrl: course.imageUrl,
       level: course.level,
     }));
-
+    logger.info("Courses fetched successfully");
     res.json({
       shortCourses,
       page,
@@ -47,6 +49,7 @@ exports.getCourses = async (req, res) => {
       nextPage: page < totalPages ? page + 1 : null,
     });
   } catch (error) {
+    logger.error("Error fetching courses:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -105,6 +108,44 @@ exports.deleteCourseById = async (req, res) => {
     const course = await courseService.deleteCourse(req.params.id);
     res.json(course);
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.addCourseDiscount = async (req, res) => {
+  try {
+    logger.info("Adding course discount");
+    const saleData = req.body;
+    const result = await courseService.addCourseDiscount(
+      req.user.id,
+      req.params.courseId,
+      saleData
+    );
+    if (result.statusCode) {
+      return res.status(result.statusCode).json({ message: result.message });
+    }
+    logger.info("Course discount added successfully");
+    res.json(result);
+  } catch (error) {
+    logger.error("Error adding course discount:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.removeCourseDiscount = async (req, res) => {
+  try {
+    logger.info("Removing course discount");
+    const result = await courseService.removeCourseDiscount(
+      req.user.id,
+      req.params.courseId
+    );
+    if (result.statusCode) {
+      return res.status(result.statusCode).json({ message: result.message });
+    }
+    logger.info("Course discount removed successfully");
+    res.json(result);
+  } catch (error) {
+    logger.error("Error removing course discount:", error);
     res.status(500).json({ message: error.message });
   }
 };
