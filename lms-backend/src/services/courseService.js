@@ -63,7 +63,7 @@ exports.getAllCourses = async (page, pageCount, search) => {
     course: { $in: courses.map((course) => course._id) },
     status: "active",
   });
-  console.log(courseSales);
+  
   courses.forEach((course) => {
     const courseSale = courseSales.find((sale) => sale.course === course._id);
     if (courseSale) {
@@ -72,7 +72,6 @@ exports.getAllCourses = async (page, pageCount, search) => {
     }
   });
 
-  console.log(courses);
   return {
     courses,
     totalItems,

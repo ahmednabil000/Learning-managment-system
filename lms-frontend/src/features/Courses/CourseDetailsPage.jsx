@@ -20,6 +20,7 @@ import {
   formatDurationVerbose,
 } from "../../utils/formatDuration";
 import { useAssignmentsByCourse } from "../../hooks/useAssignments";
+import CourseCommentsSection from "./components/CourseCommentsSection";
 
 const CourseDetailsPage = () => {
   const { courseId } = useParams();
@@ -165,10 +166,27 @@ const CourseDetailsPage = () => {
                 </div>
 
                 <div className="p-8">
-                  <div className="flex items-end gap-2 mb-6">
-                    <span className="text-4xl font-bold text-primary">
-                      ${course.price}
-                    </span>
+                  <div className="flex flex-col items-start mb-6">
+                    {course.isSale ||
+                    (course.discount > 0 && course.salePrice) ? (
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-3">
+                          <span className="text-4xl font-bold text-primary">
+                            ${course.salePrice}
+                          </span>
+                          <span className="bg-error/10 text-error text-sm font-bold px-2 py-1 rounded border border-error/20">
+                            {course.discount}% OFF
+                          </span>
+                        </div>
+                        <span className="text-lg text-text-muted line-through mt-1">
+                          ${course.price}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-4xl font-bold text-primary">
+                        ${course.price}
+                      </span>
+                    )}
                   </div>
 
                   <Button
@@ -352,6 +370,9 @@ const CourseDetailsPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Course Comments Section */}
+        <CourseCommentsSection courseId={courseId} />
       </div>
     </div>
   );

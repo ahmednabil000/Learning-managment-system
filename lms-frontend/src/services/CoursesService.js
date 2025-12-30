@@ -27,6 +27,14 @@ const CoursesService = {
     const response = await api.delete(`/courses/${id}`);
     return response.data;
   },
+  addDiscount: async (id, discountData) => {
+    const response = await api.post(`/courses/${id}/discount`, discountData);
+    return response.data;
+  },
+  removeDiscount: async (id) => {
+    const response = await api.delete(`/courses/${id}/discount`);
+    return response.data;
+  },
 };
 
 export default CoursesService;

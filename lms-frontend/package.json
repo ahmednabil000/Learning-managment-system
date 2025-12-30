@@ -22,6 +22,7 @@
     "i18next": "^25.7.3",
     "jotai": "^2.16.1",
     "react": "^19.2.0",
+    "react-charts": "^3.0.0-beta.57",
     "react-dom": "^19.2.0",
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.69.0",

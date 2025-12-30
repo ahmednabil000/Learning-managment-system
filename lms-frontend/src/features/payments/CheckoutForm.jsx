@@ -179,9 +179,26 @@ export default function CheckoutForm() {
               </div>
               <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
                 <span className="text-gray-600 font-medium">Total</span>
-                <span className="text-2xl font-bold text-blue-600">
-                  ${course.price}
-                </span>
+                <div className="flex flex-col items-end">
+                  {course.isSale ||
+                  (course.discount > 0 && course.salePrice) ? (
+                    <>
+                      <span className="text-2xl font-bold text-blue-600">
+                        ${course.salePrice}
+                      </span>
+                      <span className="text-sm text-gray-400 line-through">
+                        ${course.price}
+                      </span>
+                      <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded">
+                        {course.discount}% Discount Applied
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-2xl font-bold text-blue-600">
+                      ${course.price}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -36,7 +36,7 @@ const Sidebar = () => {
       icon: HiOutlineAcademicCap,
       end: false,
     },
-  
+
     {
       name: "Settings",
       path: "/dashboard/settings",

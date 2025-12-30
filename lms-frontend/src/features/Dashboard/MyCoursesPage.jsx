@@ -1,21 +1,154 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCourses, useDeleteCourse } from "../../hooks/useCourses";
-import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaPercent } from "react-icons/fa";
 import Button from "../../shared/components/Button";
 import ConfirmModal from "../../shared/components/ConfirmModal";
 import notification from "../../utils/notification";
+import CoursesService from "../../services/CoursesService";
+import { useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+
+const DiscountModal = ({ isOpen, onClose, course, onSave, onRemove }) => {
+  const { register, handleSubmit, reset } = useForm({
+    defaultValues: {
+      discount: 0,
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: "",
+    },
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  if (!isOpen) return null;
+
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    try {
+      await onSave(course._id, {
+        discount: Number(data.discount),
+        startDate: data.startDate,
+        endDate: data.endDate,
+      });
+      reset();
+      onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!window.confirm("Remove discount?")) return;
+    setIsLoading(true);
+    try {
+      await onRemove(course._id);
+      onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="relative bg-surface w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95">
+        <div className="p-6">
+          <h3 className="heading-m text-text-main mb-4">Manage Discount</h3>
+          <p className="text-sm text-text-muted mb-6">
+            Set a discount for <strong>{course?.title}</strong>. Current Price:
+            ${course?.price}
+          </p>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-text-muted mb-1">
+                Discount Percentage (%)
+              </label>
+              <input
+                type="number"
+                {...register("discount", { required: true, min: 1, max: 100 })}
+                className="w-full p-2 border border-border rounded-lg bg-background"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-1">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  {...register("startDate", { required: true })}
+                  className="w-full p-2 border border-border rounded-lg bg-background"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-1">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  {...register("endDate", { required: true })}
+                  className="w-full p-2 border border-border rounded-lg bg-background"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              {course?.isSale && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-error hover:bg-error/10 mr-auto"
+                  onClick={handleRemove}
+                  disabled={isLoading}
+                >
+                  Remove Sale
+                </Button>
+              )}
+
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary" isLoading={isLoading}>
+                Save Discount
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const MyCoursesPage = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const pageCount = 10;
+  const queryClient = useQueryClient();
 
   // Deletion Modal State
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     courseId: null,
     isLoading: false,
+  });
+
+  // Discount Modal State
+  const [discountModal, setDiscountModal] = useState({
+    isOpen: false,
+    course: null,
   });
 
   const { data, isLoading } = useCourses({ page, pageCount, search });
@@ -32,6 +165,8 @@ const MyCoursesPage = () => {
     });
   };
 
+  const loops = [1, 2, 3, 4, 5];
+
   const confirmDelete = () => {
     setDeleteModal((prev) => ({ ...prev, isLoading: true }));
     deleteCourse(deleteModal.courseId, {
@@ -46,6 +181,35 @@ const MyCoursesPage = () => {
         setDeleteModal((prev) => ({ ...prev, isLoading: false }));
       },
     });
+  };
+
+  const handleOpenDiscount = (course) => {
+    setDiscountModal({
+      isOpen: true,
+      course,
+    });
+  };
+
+  const handleSaveDiscount = async (courseId, data) => {
+    try {
+      await CoursesService.addDiscount(courseId, data);
+      notification.success("Discount updated successfully");
+      queryClient.invalidateQueries(["courses"]); // Refresh list to show updated sale status
+    } catch (error) {
+      notification.error("Failed to update discount");
+      throw error;
+    }
+  };
+
+  const handleRemoveDiscount = async (courseId) => {
+    try {
+      await CoursesService.removeDiscount(courseId);
+      notification.success("Discount removed successfully");
+      queryClient.invalidateQueries(["courses"]);
+    } catch (error) {
+      notification.error("Failed to remove discount");
+      throw error;
+    }
   };
 
   return (
@@ -69,7 +233,7 @@ const MyCoursesPage = () => {
         <input
           type="text"
           placeholder="Search your courses..."
-          className="bg-transparent border-none focus:ring-0 flex-1 text-text-main"
+          className="bg-transparent border-none focus:ring-0 flex-1 text-text-main py-2 outline-none"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -91,7 +255,7 @@ const MyCoursesPage = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
+                loops.map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-6 py-4">
                       <div className="h-4 bg-border rounded w-48"></div>
@@ -126,21 +290,47 @@ const MyCoursesPage = () => {
                           <p className="text-xs text-text-muted truncate max-w-xs">
                             {course.description}
                           </p>
+                          {course.isSale && (
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-error/10 text-error text-[10px] font-bold uppercase rounded-sm border border-error/20">
+                              Sale {course.discount}% OFF
+                            </span>
+                          )}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className="font-semibold text-primary">
-                        ${course.price}
-                      </span>
+                      {course.isSale ? (
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-error">
+                            ${course.salePrice}
+                          </span>
+                          <span className="text-xs text-text-muted line-through">
+                            ${course.price}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-semibold text-primary">
+                          ${course.price}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-purple-600 hover:bg-purple-50"
+                          onClick={() => handleOpenDiscount(course)}
+                          title="Manage Discount"
+                        >
+                          <FaPercent />
+                        </Button>
                         <Link to={`/dashboard/courses/${course._id}/edit`}>
                           <Button
                             variant="ghost"
                             size="sm"
                             className="text-info hover:bg-info/10"
+                            title="Edit Course"
                           >
                             <FaEdit />
                           </Button>
@@ -150,6 +340,7 @@ const MyCoursesPage = () => {
                           size="sm"
                           className="text-error hover:bg-error/10"
                           onClick={() => handleDelete(course._id)}
+                          title="Delete Course"
                         >
                           <FaTrash />
                         </Button>
@@ -196,6 +387,17 @@ const MyCoursesPage = () => {
         onCancel={() => setDeleteModal({ ...deleteModal, isOpen: false })}
         isLoading={deleteModal.isLoading || isDeleting}
       />
+
+      {/* Discount Modal */}
+      {discountModal.isOpen && (
+        <DiscountModal
+          isOpen={discountModal.isOpen}
+          onClose={() => setDiscountModal({ isOpen: false, course: null })}
+          course={discountModal.course}
+          onSave={handleSaveDiscount}
+          onRemove={handleRemoveDiscount}
+        />
+      )}
     </div>
   );
 };

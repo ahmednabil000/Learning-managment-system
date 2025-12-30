@@ -35,6 +35,8 @@ exports.getCourses = async (req, res) => {
       price: course.price,
       imageUrl: course.imageUrl,
       level: course.level,
+      salePrice: course.salePrice,
+      discount: course.discount,
     }));
     logger.info("Courses fetched successfully");
     res.json({
