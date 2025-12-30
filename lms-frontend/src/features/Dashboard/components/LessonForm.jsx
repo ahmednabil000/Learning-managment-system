@@ -25,6 +25,7 @@ const LessonForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
       title: "",
       description: "",
       duration: 0,
+      isOpen: false,
     },
   });
 
@@ -106,6 +107,25 @@ const LessonForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
               {errors.description.message}
             </p>
           )}
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              {...register("isOpen")}
+              className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary/50 transition-all"
+            />
+            <div>
+              <span className="text-sm font-bold text-text-main">
+                Allow Preview (Public)
+              </span>
+              <p className="text-xs text-text-muted">
+                If checked, this lesson will be visible to users without
+                enrollment.
+              </p>
+            </div>
+          </label>
         </div>
 
         <div className="md:col-span-2">

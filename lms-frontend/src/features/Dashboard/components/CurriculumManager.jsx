@@ -67,8 +67,7 @@ const CurriculumManager = ({ courseId }) => {
     useLecturesByCourse(courseId);
 
   // Fetch all assignments for the course
-  const { data: courseAssignments = [], isLoading: isLoadingAssignments } =
-    useAssignmentsByCourse(courseId);
+  const { data: courseAssignments = [] } = useAssignmentsByCourse(courseId);
 
   const { mutate: createLecture, isPending: isCreatingLecture } =
     useCreateLecture({
@@ -238,12 +237,16 @@ const CurriculumManager = ({ courseId }) => {
     createLesson({
       ...data,
       lectureId,
+      course: courseId,
       order: lessonCount + 1,
     });
   };
 
   const handleEditLessonSubmit = (data, lesson) => {
-    updateLesson({ id: lesson._id, data: { ...lesson, ...data } });
+    updateLesson({
+      id: lesson._id,
+      data: { ...lesson, ...data, course: courseId },
+    });
   };
 
   // --- Assignment Handlers ---
@@ -473,6 +476,7 @@ const LectureContent = ({
                       description: lesson.description,
                       duration: lesson.duration,
                       videoUrl: lesson.videoUrl,
+                      isOpen: lesson.isOpen,
                     }}
                     onSubmit={(data) => handleEditLessonSubmit(data, lesson)}
                     onCancel={() => setEditingLessonId(null)}

@@ -6,6 +6,12 @@ export const useLesson = (id) => {
     queryKey: ["lesson", id],
     queryFn: () => LessonsService.fetchLessonById(id),
     enabled: !!id,
+    retry: (failureCount, error) => {
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 };
 

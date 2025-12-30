@@ -9,6 +9,7 @@ import {
   FaPlayCircle,
   FaClock,
   FaCheckCircle,
+  FaLock,
 } from "react-icons/fa";
 import { useState } from "react";
 import { formatDuration } from "../../utils/formatDuration";
@@ -22,7 +23,11 @@ const LessonViewPage = () => {
   const isRtl = i18n.language === "ar";
 
   const { data: course, isLoading: courseLoading } = useCourse(courseId);
-  const { data: currentLesson, isLoading: lessonLoading } = useLesson(lessonId);
+  const {
+    data: currentLesson,
+    isLoading: lessonLoading,
+    error: lessonError,
+  } = useLesson(lessonId);
   const [expandedLectures, setExpandedLectures] = useState({});
 
   const toggleLecture = (lectureId) => {
@@ -55,6 +60,44 @@ const LessonViewPage = () => {
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  if (lessonError) {
+    const status = lessonError.response?.status;
+
+    if (status === 403) {
+      return (
+        <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
+          <FaLock size={64} className="text-gray-600 mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
+          <p className="text-gray-400 mb-6">
+            You must be enrolled in this course to view this lesson.
+          </p>
+          <Link to={`/courses/${courseId}`}>
+            <button className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90">
+              Back to Course
+            </button>
+          </Link>
+        </div>
+      );
+    }
+
+    if (status === 401) {
+      return (
+        <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
+          <FaLock size={64} className="text-gray-600 mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Login Required</h2>
+          <p className="text-gray-400 mb-6">
+            Please log in to view this lesson.
+          </p>
+          <Link to="/login">
+            <button className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90">
+              Go to Login
+            </button>
+          </Link>
+        </div>
+      );
+    }
   }
 
   if (!course || !currentLesson) {
