@@ -1,7 +1,9 @@
 const { Course, Lecture, Lesson, CourseTag } = require("../models");
 const CourseSale = require("../models/courses/courseSale");
+const UserEnroll = require("../models/userEnroll");
+const CourseComment = require("../models/courses/courseComment");
 
-exports.getCourseById = async (id) => {
+exports.getCourseById = async (id, userId = null) => {
   const course = await Course.findOne({ _id: id })
     .populate("tag")
     .populate("instructor")
@@ -10,7 +12,16 @@ exports.getCourseById = async (id) => {
   if (!course) {
     return null;
   }
-
+  course.isEnroll = false;
+  if (userId) {
+    const isEnroll = await UserEnroll.findOne({
+      user: userId,
+      course: course._id,
+    });
+    if (isEnroll) {
+      course.isEnroll = true;
+    }
+  }
   const lectures = await Lecture.find({ course: course._id })
     .sort({ order: 1 })
     .lean();
@@ -32,9 +43,9 @@ exports.getCourseById = async (id) => {
     course: course._id,
     status: "active",
   }).lean();
-  console.log(courseSale);
   if (courseSale) {
-    course.salePrice = courseSale.salePrice;
+    course.salePrice =
+      course.price - (course.price * courseSale.discount) / 100;
     course.discount = courseSale.discount;
   }
   const totalDuration = lessons.reduce((acc, value) => acc + value.duration, 0);
@@ -42,10 +53,29 @@ exports.getCourseById = async (id) => {
   course.lectures = lecturesWithLessons;
   course.totalDuration = totalDuration;
 
+  const ratings = await CourseComment.aggregate([
+    { $match: { course: course._id } },
+    {
+      $group: {
+        _id: "$course",
+        avgRate: { $avg: "$rate" },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  course.rate =
+    ratings.length > 0 ? parseFloat(ratings[0].avgRate.toFixed(1)) : 0;
+  course.reviewCount = ratings.length > 0 ? ratings[0].count : 0;
+
+  course.studentsCount = await UserEnroll.countDocuments({
+    course: course._id,
+  });
+
   return course;
 };
 
-exports.getAllCourses = async (page, pageCount, search) => {
+exports.getAllCourses = async (page, pageCount, search, userId = null) => {
   const courses = await Course.find({
     title: { $regex: search, $options: "i" },
   })
@@ -55,6 +85,27 @@ exports.getAllCourses = async (page, pageCount, search) => {
     .populate("tag")
     .lean();
 
+  // Initialize isEnroll to false for all courses
+  courses.forEach((course) => {
+    course.isEnroll = false;
+  });
+
+  // Only check enrollment if userId is provided
+  if (userId) {
+    const coursesIds = courses.map((course) => course._id);
+    const userEnrolls = await UserEnroll.find({
+      user: userId,
+      course: { $in: coursesIds },
+    }).lean();
+
+    userEnrolls.forEach((enroll) => {
+      const course = courses.find((c) => c._id === enroll.course);
+      if (course) {
+        course.isEnroll = true;
+      }
+    });
+  }
+
   const totalItems = await Course.countDocuments({
     title: { $regex: search, $options: "i" },
   });
@@ -63,13 +114,46 @@ exports.getAllCourses = async (page, pageCount, search) => {
     course: { $in: courses.map((course) => course._id) },
     status: "active",
   });
-  
+
   courses.forEach((course) => {
     const courseSale = courseSales.find((sale) => sale.course === course._id);
     if (courseSale) {
-      course.salePrice = courseSale.salePrice;
+      course.salePrice =
+        course.price - (course.price * courseSale.discount) / 100;
       course.discount = courseSale.discount;
     }
+  });
+
+  // Calculate ratings for all courses
+  const courseIds = courses.map((c) => c._id);
+  const ratings = await CourseComment.aggregate([
+    { $match: { course: { $in: courseIds } } },
+    {
+      $group: {
+        _id: "$course",
+        avgRate: { $avg: "$rate" },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const enrollmentCounts = await UserEnroll.aggregate([
+    { $match: { course: { $in: courseIds } } },
+    {
+      $group: {
+        _id: "$course",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  courses.forEach((course) => {
+    const rating = ratings.find((r) => r._id === course._id);
+    course.rate = rating ? parseFloat(rating.avgRate.toFixed(1)) : 0;
+    course.reviewCount = rating ? rating.count : 0;
+
+    const enrollment = enrollmentCounts.find((e) => e._id === course._id);
+    course.studentsCount = enrollment ? enrollment.count : 0;
   });
 
   return {
@@ -169,12 +253,9 @@ module.exports.addCourseDiscount = async (userId, courseId, saleData) => {
 
   const status = startDate <= now && endDate >= now ? "active" : "inactive";
 
-  const salePrice = course.price - (course.price * saleData.discount) / 100;
-
   const courseSale = await CourseSale.create({
     course: course._id,
     user: userId,
-    salePrice,
     discount: saleData.discount,
     startDate,
     endDate,
@@ -193,4 +274,68 @@ module.exports.removeCourseDiscount = async (userId, courseId) => {
     user: userId,
   });
   return { statusCode: 200, message: "Course discount removed successfully" };
+};
+
+module.exports.getInstructorCourses = async (userId, page, limit) => {
+  const courses = await Course.find({ instructor: userId })
+    .populate("tag")
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .lean();
+  const totalItems = await Course.countDocuments({ instructor: userId });
+  const totalPages = Math.ceil(totalItems / limit);
+  return { courses, totalItems, totalPages };
+};
+
+module.exports.getMyEnrolledCourses = async (userId, offset, limit) => {
+  const userEnrolls = await UserEnroll.find({ user: userId })
+    .populate("course")
+    .skip(offset * limit)
+    .limit(limit)
+    .lean();
+
+  const totalItems = await UserEnroll.countDocuments({ user: userId });
+  const totalPages = Math.ceil(totalItems / limit);
+
+  const courseIds = userEnrolls.map((enroll) => enroll.course._id);
+
+  // Aggregate ratings
+  const ratings = await CourseComment.aggregate([
+    { $match: { course: { $in: courseIds } } },
+    {
+      $group: {
+        _id: "$course",
+        avgRate: { $avg: "$rate" },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // Aggregate student counts
+  const enrollmentCounts = await UserEnroll.aggregate([
+    { $match: { course: { $in: courseIds } } },
+    {
+      $group: {
+        _id: "$course",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  userEnrolls.forEach((enroll) => {
+    if (enroll.course) {
+      const rating = ratings.find(
+        (r) => r._id.toString() === enroll.course._id.toString()
+      );
+      enroll.course.rate = rating ? parseFloat(rating.avgRate.toFixed(1)) : 0;
+      enroll.course.reviewCount = rating ? rating.count : 0;
+
+      const enrollment = enrollmentCounts.find(
+        (e) => e._id.toString() === enroll.course._id.toString()
+      );
+      enroll.course.studentsCount = enrollment ? enrollment.count : 0;
+    }
+  });
+
+  return { courses: userEnrolls, totalItems, totalPages };
 };

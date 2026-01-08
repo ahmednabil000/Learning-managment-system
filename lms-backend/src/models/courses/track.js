@@ -7,21 +7,37 @@ const trackSchema = new mongoose.Schema(
       type: String,
       default: uuidv4,
     },
-    title: String,
-    description: String,
+    title: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    user: {
+      type: String,
+      ref: "User",
+    },
     courses: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "Course",
       },
     ],
-    coverImage: String,
-    duration: Number,
-    isPublished: Boolean,
+    discount: Number,
+    thumbnail: String,
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+trackSchema.index({ title: 1, description: 1 });
 
 module.exports = mongoose.model("Track", trackSchema);

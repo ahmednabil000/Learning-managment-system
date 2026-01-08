@@ -26,4 +26,5 @@ const lectureSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Lecture", lectureSchema);
+module.exports =
+  mongoose.models.Lecture || mongoose.model("Lecture", lectureSchema);

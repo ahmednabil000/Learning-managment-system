@@ -22,6 +22,7 @@ const userEnrollSchema = new mongoose.Schema({
   },
 });
 
-const UserEnroll = mongoose.model("UserEnroll", userEnrollSchema);
+const UserEnroll =
+  mongoose.models.UserEnroll || mongoose.model("UserEnroll", userEnrollSchema);
 
 module.exports = UserEnroll;

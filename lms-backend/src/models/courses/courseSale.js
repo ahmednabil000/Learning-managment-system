@@ -11,10 +11,6 @@ const courseSaleSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    salePrice: {
-      type: Number,
-      required: true,
-    },
     discount: {
       type: Number,
       required: true,

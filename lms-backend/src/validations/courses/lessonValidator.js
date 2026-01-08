@@ -7,7 +7,7 @@ const lessonSchema = Joi.object({
   course: Joi.string().required(),
   order: Joi.number().required(),
   duration: Joi.number().required(),
-  videoUrl: Joi.string().required(),
+  publicId: Joi.string().required(),
   isOpen: Joi.boolean().optional(),
 });
 

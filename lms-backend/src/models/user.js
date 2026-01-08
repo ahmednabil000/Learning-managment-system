@@ -30,7 +30,9 @@ const userSchema = new mongoose.Schema(
 const User = mongoose.model("User", userSchema);
 
 // Instructor Discriminator
-const instructorSchema = new mongoose.Schema({});
+const instructorSchema = new mongoose.Schema({
+  description: String,
+});
 const Instructor = User.discriminator("Instructor", instructorSchema);
 
 // Student Discriminator

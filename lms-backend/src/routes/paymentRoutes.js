@@ -4,9 +4,11 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const router = express.Router();
 const authMiddleware = require("../middlewares/authMiddleware");
 const Course = require("../models/courses/course");
-const UserEnroll = require("../models/UserEnroll");
+const UserEnroll = require("../models/userEnroll");
 const logger = require("../config/logger");
 const CourseSale = require("../models/courses/courseSale");
+
+const Track = require("../models/courses/track");
 
 router.post("/create-payment-intent", authMiddleware, async (req, res) => {
   logger.info("Creating payment intent");
@@ -35,7 +37,9 @@ router.post("/create-payment-intent", authMiddleware, async (req, res) => {
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(
-        courseSale ? courseSale.salePrice : course.price * 100
+        courseSale
+          ? course.price - (course.price * courseSale.discount) / 100
+          : course.price
       ),
       currency: "usd",
       metadata: {
@@ -48,13 +52,63 @@ router.post("/create-payment-intent", authMiddleware, async (req, res) => {
     });
     logger.info("Payment intent created successfully");
 
-    logger.info("Payment intent created successfully");
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (error) {
     logger.error("Error creating payment intent:", error);
     res.status(500).json({ error: "Failed to create payment intent" });
   }
 });
+
+router.post(
+  "/create-track-payment-intent",
+  authMiddleware,
+  async (req, res) => {
+    logger.info("Creating track payment intent");
+    try {
+      const { trackId } = req.body;
+      if (!trackId) {
+        return res.status(400).json({ error: "Invalid track ID" });
+      }
+      const track = await Track.findById(trackId).populate("courses");
+      if (!track) {
+        return res.status(404).json({ error: "Track not found" });
+      }
+
+      // Calculate total price with discount
+      let totalPrice = 0;
+      for (const course of track.courses) {
+        const isEnroll = await UserEnroll.findOne({
+          user: req.user.id,
+          course: course._id,
+        });
+        if (!isEnroll) {
+          totalPrice += course.price;
+        }
+      }
+      if (track.discount) {
+        totalPrice = totalPrice - (totalPrice * track.discount) / 100;
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(totalPrice * 100),
+        currency: "usd",
+        metadata: {
+          trackId,
+          userId: req.user.id,
+        },
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      logger.info("Track payment intent created successfully");
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error) {
+      logger.error("Error creating track payment intent:", error);
+      res.status(500).json({ error: "Failed to create track payment intent" });
+    }
+  }
+);
 
 router.post("/success-payment", authMiddleware, async (req, res) => {
   try {
@@ -76,7 +130,7 @@ router.post("/success-payment", authMiddleware, async (req, res) => {
         .status(400)
         .json({ error: "You are already enrolled in this course" });
     }
-    UserEnroll.create({
+    await UserEnroll.create({
       user: req.user.id,
       course: req.body.courseId,
       enrolledAt: new Date(),
@@ -86,6 +140,42 @@ router.post("/success-payment", authMiddleware, async (req, res) => {
   } catch (error) {
     logger.error("Error enrolling user:", error);
     res.status(500).json({ error: "Failed to enroll user" });
+  }
+});
+
+router.post("/success-track-payment", authMiddleware, async (req, res) => {
+  try {
+    logger.info("Enrolling user in track courses");
+    const { trackId } = req.body;
+    if (!trackId) {
+      return res.status(400).json({ error: "Invalid track ID" });
+    }
+    const track = await Track.findById(trackId);
+    if (!track) {
+      return res.status(404).json({ error: "Track not found" });
+    }
+
+    const enrollmentPromises = track.courses.map(async (courseId) => {
+      const exists = await UserEnroll.findOne({
+        user: req.user.id,
+        course: courseId,
+      });
+      if (!exists) {
+        return UserEnroll.create({
+          user: req.user.id,
+          course: courseId,
+          enrolledAt: new Date(),
+        });
+      }
+    });
+
+    await Promise.all(enrollmentPromises);
+
+    logger.info("User enrolled in track courses successfully");
+    res.json({ message: "User enrolled in track courses successfully" });
+  } catch (error) {
+    logger.error("Error enrolling user in track:", error);
+    res.status(500).json({ error: "Failed to enroll user in track" });
   }
 });
 

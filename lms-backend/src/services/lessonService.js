@@ -1,5 +1,6 @@
 const Lesson = require("../models/courses/lesson");
-const UserEnroll = require("../models/UserEnroll");
+const UserEnroll = require("../models/userEnroll");
+const cloudinary = require("../config/cloudinary");
 
 module.exports.createLesson = async ({
   title,
@@ -7,8 +8,8 @@ module.exports.createLesson = async ({
   lectureId,
   course,
   order,
+  publicId,
   duration,
-  videoUrl,
   isOpen,
 }) => {
   const lesson = await Lesson.create({
@@ -17,8 +18,8 @@ module.exports.createLesson = async ({
     lecture: lectureId,
     course,
     order,
+    publicId,
     duration,
-    videoUrl,
     isOpen,
   });
   return lesson;
@@ -55,6 +56,16 @@ module.exports.updateLesson = async ({
   return lesson;
 };
 
+module.exports.uploadVideo = async (file) => {
+  const result = await cloudinary.uploader.upload(file.path, {
+    resource_type: "video",
+    folder: "lessons",
+    type: "authenticated",
+    public_id: `lesson_${Date.now()}_${file.originalname?.split(".")[0]}`,
+  });
+  return result.public_id;
+};
+
 module.exports.deleteLesson = async (id) => {
   const lesson = await Lesson.findOne({ _id: id });
 
@@ -67,28 +78,44 @@ module.exports.deleteLesson = async (id) => {
 };
 
 module.exports.getLessonById = async (id, userId) => {
-  const lesson = await Lesson.findOne({ _id: id });
+  const lesson = await Lesson.findOne({ _id: id }).lean();
 
   if (!lesson) {
     return { status: 404, message: "Lesson not found" };
   }
 
+  let hasAccess = false;
+
   if (lesson.isOpen) {
-    return { status: 200, lesson };
+    hasAccess = true;
+  } else if (userId) {
+    const userEnroll = await UserEnroll.findOne({
+      user: userId,
+      course: lesson.course,
+    });
+    if (userEnroll) {
+      hasAccess = true;
+    }
   }
 
-  if (!userId) {
-    return { status: 401, message: "Unauthorized" };
-  }
-
-  const userEnroll = await UserEnroll.findOne({
-    user: userId,
-    course: lesson.course,
-  });
-
-  if (!userEnroll) {
+  if (!hasAccess) {
+    if (!userId) {
+      return { status: 401, message: "Unauthorized" };
+    }
     return { status: 403, message: "You are not enrolled in this course" };
   }
+
+  if (lesson.publicId) {
+    const signedUrl = cloudinary.url(lesson.publicId, {
+      type: "authenticated",
+      resource_type: "video",
+      sign_url: true,
+      expiration: Math.floor(Date.now() / 1000) + 1800, // 30 minutes
+    });
+    lesson.url = signedUrl;
+    console.log(lesson);
+  }
+
   return { status: 200, lesson };
 };
 

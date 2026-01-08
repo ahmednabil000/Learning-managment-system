@@ -8,7 +8,11 @@ router.use(authMiddleware);
 
 router.get("/courses-count", analyticsController.getCoursesCount);
 router.get("/enrolled-users-count", analyticsController.getEnrolledUsersCount);
-router.get("/total-revenue", analyticsController.getTotalRevenue);
+router.get(
+  "/total-revenue",
+  authMiddleware,
+  analyticsController.getTotalRevenue
+);
 router.get(
   "/enrollments-by-course",
   analyticsController.getCoursesEnrolledCount

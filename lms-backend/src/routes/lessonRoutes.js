@@ -8,9 +8,16 @@ const {
 } = require("../controllers/lessonsController");
 const authMiddleware = require("../middlewares/authMiddleware");
 const optionalAuthMiddleware = require("../middlewares/optionalAuthMiddleware");
+const upload = require("../middlewares/uploadMiddleware");
 const router = express.Router();
 
 router.post("/", authMiddleware, createLesson);
+router.post(
+  "/upload",
+  authMiddleware,
+  upload.single("video"),
+  require("../controllers/lessonsController").uploadVideo
+);
 router.put("/:id", authMiddleware, updateLesson);
 router.delete("/:id", authMiddleware, deleteLesson);
 router.get("/:id", optionalAuthMiddleware, getLessonById);

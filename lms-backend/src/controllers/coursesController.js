@@ -2,13 +2,17 @@ const courseService = require("../services/courseService");
 const paginationValidator = require("../validations/paginationValidator");
 const courseValidator = require("../validations/courses/courseValidator");
 const logger = require("../config/logger");
-
 exports.getCourseById = async (req, res) => {
   try {
-    const course = await courseService.getCourseById(req.params.id);
+    console.log(req.user.id);
+    const course = await courseService.getCourseById(
+      req.params.id,
+      req.user?.id
+    );
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
+
     res.json(course);
   } catch (error) {
     console.log(error.message);
@@ -26,7 +30,7 @@ exports.getCourses = async (req, res) => {
     const { page, pageCount, search } = value;
 
     const { courses, totalItems, totalPages } =
-      await courseService.getAllCourses(page, pageCount, search);
+      await courseService.getAllCourses(page, pageCount, search, req.user?.id);
 
     const shortCourses = courses.map((course) => ({
       _id: course._id,
@@ -37,7 +41,12 @@ exports.getCourses = async (req, res) => {
       level: course.level,
       salePrice: course.salePrice,
       discount: course.discount,
+      isEnroll: course.isEnroll || false,
+      rate: course.rate || 0,
+      reviewCount: course.reviewCount || 0,
+      studentsCount: course.studentsCount || 0,
     }));
+
     logger.info("Courses fetched successfully");
     res.json({
       shortCourses,
@@ -148,6 +157,75 @@ exports.removeCourseDiscount = async (req, res) => {
     res.json(result);
   } catch (error) {
     logger.error("Error removing course discount:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+exports.getInstructorCourses = async (req, res) => {
+  try {
+    logger.info("Fetching instructor courses");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const { courses, totalItems, totalPages } =
+      await courseService.getInstructorCourses(
+        req.params.instructorId,
+        page,
+        limit
+      );
+
+    logger.info("Instructor courses fetched successfully");
+    res.json({
+      courses,
+      page,
+      limit,
+      totalItems,
+      totalPages,
+      hasPrevPage: page > 1,
+      hasNextPage: page < totalPages,
+      prevPage: page > 1 ? page - 1 : null,
+      nextPage: page < totalPages ? page + 1 : null,
+    });
+  } catch (error) {
+    logger.error("Error fetching instructor courses:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getMyEnrolledCourses = async (req, res) => {
+  try {
+    logger.info("Fetching enrolled courses");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const { courses, totalItems, totalPages } =
+      await courseService.getMyEnrolledCourses(
+        req.user.id,
+        page - 1, // Service expects offset (0-indexed page) or actual offset? Service logic: skip(offset * limit). If user passes 1, offset should be 0.
+        limit
+      );
+
+    // Service logic reminder: skip(offset * limit).
+    // If I pass page=1, I want offset=0. (1-1)=0.
+    // If I pass page=2, I want offset=1. (2-1)=1.
+    // So passing `page - 1` is correct for the service implementation shown in the user's snippet.
+
+    const enrolledCourses = courses.map((enroll) => ({
+      ...enroll.course, // Spread course details
+      enrolledAt: enroll.enrolledAt, // Add enrollment date
+    }));
+
+    logger.info("Enrolled courses fetched successfully");
+    res.json({
+      courses: enrolledCourses,
+      page,
+      limit,
+      totalItems,
+      totalPages,
+      hasPrevPage: page > 1,
+      hasNextPage: page < totalPages,
+      prevPage: page > 1 ? page - 1 : null,
+      nextPage: page < totalPages ? page + 1 : null,
+    });
+  } catch (error) {
+    logger.error("Error fetching enrolled courses:", error);
     res.status(500).json({ message: error.message });
   }
 };
