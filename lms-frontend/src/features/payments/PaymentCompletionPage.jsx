@@ -10,6 +10,7 @@ export default function PaymentCompletionPage() {
   const [searchParams] = useSearchParams();
   const clientSecret = searchParams.get("payment_intent_client_secret");
   const courseId = searchParams.get("courseId");
+  const trackId = searchParams.get("trackId");
 
   const [status, setStatus] = useState(clientSecret ? "loading" : "error");
   const [message, setMessage] = useState(
@@ -21,10 +22,6 @@ export default function PaymentCompletionPage() {
   useEffect(() => {
     if (!clientSecret || effectRan.current) return;
 
-    // In strict mode, effects run twice. We use this ref to prevent double execution.
-    // However, cleanup functions run too, so we need careful handling.
-    // For simpler data mutations like this payment confirmation which shouldn't happen twice,
-    // a simple ref check works if we set it immediately.
     effectRan.current = true;
 
     stripePromise.then((stripe) => {
@@ -36,23 +33,26 @@ export default function PaymentCompletionPage() {
           switch (paymentIntent.status) {
             case "succeeded":
               setStatus("loading");
-              setMessage("Payment succeeded. Enrolling in course...");
+              setMessage("Payment succeeded. Enrolling...");
               try {
                 if (courseId) {
                   await PaymentsService.enrollUserInCourse(courseId);
                   setStatus("success");
                   setMessage("Thank you! You have been successfully enrolled.");
+                } else if (trackId) {
+                  await PaymentsService.enrollUserInTrack(trackId);
+                  setStatus("success");
+                  setMessage(
+                    "Thank you! You have been successfully enrolled in the track."
+                  );
                 } else {
-                  // If no courseId, we can't enroll, but payment succeeded.
-                  // Should potentially log this or show different message.
+                  // If no ID, we can't enroll, but payment succeeded.
                   setStatus("success");
                   setMessage("Payment successful.");
                 }
               } catch (error) {
                 console.error("Enrollment error:", error);
                 setStatus("error");
-                // Even if payment succeeded, if enrollment fails, we need to show error or handle manual support.
-                // For now, let's say "Payment successful but enrollment failed. Please contact support."
                 setMessage(
                   "Payment successful but enrollment failed. Please contact support."
                 );
@@ -73,7 +73,7 @@ export default function PaymentCompletionPage() {
           }
         });
     });
-  }, [clientSecret, courseId]);
+  }, [clientSecret, courseId, trackId]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
@@ -95,14 +95,23 @@ export default function PaymentCompletionPage() {
             <h1 className="text-3xl font-bold text-gray-800">Success!</h1>
             <p className="text-gray-600 text-lg">{message}</p>
             <div className="pt-4 space-y-3">
-              {courseId ? (
+              {courseId && (
                 <Link
                   to={`/courses/${courseId}`}
                   className="w-full inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
                   Go to Course
                 </Link>
-              ) : (
+              )}
+              {trackId && (
+                <Link
+                  to={`/tracks/${trackId}`}
+                  className="w-full inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                  Go to Track
+                </Link>
+              )}
+              {!courseId && !trackId && (
                 <Link
                   to="/"
                   className="w-full inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
@@ -135,7 +144,13 @@ export default function PaymentCompletionPage() {
             <p className="text-gray-600 text-lg">{message}</p>
             <div className="pt-4">
               <Link
-                to={courseId ? `/checkout/${courseId}` : "/courses"}
+                to={
+                  courseId
+                    ? `/checkout/${courseId}`
+                    : trackId
+                    ? `/checkout/track/${trackId}`
+                    : "/courses"
+                }
                 className="w-full inline-block bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-900 transition duration-300 shadow-md"
               >
                 Try Again

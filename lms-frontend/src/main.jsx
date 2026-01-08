@@ -26,6 +26,7 @@ import TrackDetailsPage from "./features/Tracks/TrackDetailsPage";
 import AuthSuccess from "./features/Auth/AuthSuccess";
 import PaymentCompletionPage from "./features/payments/PaymentCompletionPage";
 import CheckoutForm from "./features/payments/CheckoutForm";
+import TrackCheckoutPage from "./features/payments/TrackCheckoutPage";
 
 import DashboardLayout from "./shared/layouts/DashboardLayout";
 import InstructorDashboard from "./features/Dashboard/InstructorDashboard";
@@ -73,6 +74,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute roles={["Student"]}>
             <CheckoutForm />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "checkout/track/:trackId",
+        element: (
+          <ProtectedRoute roles={["Student"]}>
+            <TrackCheckoutPage />
           </ProtectedRoute>
         ),
       },

@@ -84,7 +84,19 @@ module.exports.getAllTracks = async (offset, limit, search = "") => {
 module.exports.getTrackById = async (id) => {
   const track = await Track.findOne({ _id: id })
     .populate("user")
-    .populate("courses");
+    .populate("courses")
+    .lean();
+  if (!track) {
+    return { statusCode: 404, message: "Track not found" };
+  }
+  let totalPrice = 0;
+  track.courses.forEach((course) => {
+    totalPrice += course.price;
+  });
+  if (track.discount) {
+    totalPrice = totalPrice - (totalPrice * track.discount) / 100;
+  }
+  track.totalPrice = totalPrice;
   return track;
 };
 
@@ -195,4 +207,9 @@ module.exports.removeCourseFromTrack = async (userId, trackId, courseId) => {
   track.courses.pull(courseId);
   await track.save();
   return track;
+};
+
+module.exports.getInstructorTracks = async (userId, offset, limit) => {
+  const tracks = await Track.find({ user: userId }).skip(offset).limit(limit);
+  return tracks;
 };

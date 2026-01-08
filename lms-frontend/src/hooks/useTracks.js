@@ -17,6 +17,15 @@ export const useTrack = (id) => {
   });
 };
 
+export const useInstructorTracks = (instructorId, params) => {
+  return useQuery({
+    queryKey: ["tracks-instructor", instructorId, params],
+    queryFn: () => TrackService.getInstructorTracks(instructorId, params),
+    enabled: !!instructorId,
+    placeholderData: (previousData) => previousData,
+  });
+};
+
 export const useCreateTrack = (options = {}) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -24,6 +33,7 @@ export const useCreateTrack = (options = {}) => {
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: ["tracks"] });
+      queryClient.invalidateQueries({ queryKey: ["tracks-instructor"] });
       if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });
@@ -37,6 +47,7 @@ export const useUpdateTrack = (options = {}) => {
     onSuccess: (data, variables, context) => {
       const { id } = variables;
       queryClient.invalidateQueries({ queryKey: ["tracks"] });
+      queryClient.invalidateQueries({ queryKey: ["tracks-instructor"] });
       queryClient.invalidateQueries({ queryKey: ["track", id] });
       if (options.onSuccess) options.onSuccess(data, variables, context);
     },
@@ -50,6 +61,7 @@ export const useDeleteTrack = (options = {}) => {
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: ["tracks"] });
+      queryClient.invalidateQueries({ queryKey: ["tracks-instructor"] });
       if (options.onSuccess) options.onSuccess(data, variables, context);
     },
   });

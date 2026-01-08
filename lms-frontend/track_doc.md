@@ -348,3 +348,40 @@ Completes the enrollment process after a successful payment for a track.
   "message": "User enrolled in track courses successfully"
 }
 ```
+
+---
+
+## 10. Get Instructor Tracks
+
+Retrieves a paginated list of tracks created by a specific instructor.
+
+**Endpoint:** `GET /api/tracks/instructor/:instructorId`
+
+**Query Parameters:**
+
+- `page` (number, optional): Page number (default: 1).
+- `limit` (number, optional): Number of items per page (default: 10).
+
+**Response:**
+
+```json
+{
+  "tracks": [
+    {
+      "_id": "track-uuid",
+      "title": "Instructor's Track",
+      "description": "...",
+      "discount": 10,
+      "thumbnail": "url",
+      "courses": [ ... ],
+      "active": true
+    }
+  ],
+  "page": 1,
+  "limit": 10,
+  "totalItems": 5,
+  "totalPages": 1,
+  "hasPrevPage": false,
+  "hasNextPage": false
+}
+```

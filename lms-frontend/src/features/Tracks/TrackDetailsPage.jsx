@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTrack } from "../../hooks/useTracks";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,8 +11,14 @@ import Button from "../../shared/components/Button";
 
 const TrackDetailsPage = () => {
   const { trackId } = useParams();
+  const navigate = useNavigate();
   const { i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
+
+  const handleEnroll = () => {
+    if (!trackId) return;
+    navigate(`/checkout/track/${trackId}`);
+  };
 
   // We use useTrack hook here
   const { data: track, isLoading, isError } = useTrack(trackId);
@@ -100,7 +106,7 @@ const TrackDetailsPage = () => {
                   />
                 </div>
                 <div className="p-8">
-                  {/* Actions/Price - Placeholder for now as we don't have direct checkout implemented for tracks yet in UI */}
+                  {/* Actions/Price */}
                   {track.discount > 0 && (
                     <div className="mb-4">
                       <span className="bg-error/10 text-error text-sm font-bold px-2 py-1 rounded border border-error/20">
@@ -111,10 +117,21 @@ const TrackDetailsPage = () => {
                   <p className="text-text-muted text-sm mb-6">
                     Get all these courses together to master this path.
                   </p>
-                  {/* 
-                                        TODO: Add purchase button handled by PaymentService logic later. 
-                                        For now, we can show total estimated value or nothing.
-                                    */}
+
+                  {track.totalPrice !== undefined && (
+                    <div className="mb-6">
+                      <span className="text-3xl font-bold text-primary">
+                        ${track.totalPrice.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full justify-center"
+                    onClick={handleEnroll}
+                  >
+                    Enroll Now
+                  </Button>
                 </div>
               </div>
             </div>
@@ -172,10 +189,7 @@ const TrackDetailsPage = () => {
                   <FaCheckCircle className="text-success mt-1 shrink-0" />
                   <span>Lifetime access to all courses</span>
                 </li>
-                <li className="flex items-start gap-3 text-text-muted">
-                  <FaCheckCircle className="text-success mt-1 shrink-0" />
-                  <span>Certificate of completion</span>
-                </li>
+
                 <li className="flex items-start gap-3 text-text-muted">
                   <FaCheckCircle className="text-success mt-1 shrink-0" />
                   <span>Access on mobile and desktop</span>

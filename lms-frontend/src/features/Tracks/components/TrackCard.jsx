@@ -52,18 +52,24 @@ const TrackCard = ({ track }) => {
               <span>{track.courses?.length || 0} Courses</span>
             </div>
 
-            <div className="text-right">
-              {/* 
-                        Pricing logic for tracks is usually calculated based on courses. 
-                        Since the API returns track details, we assume the display logic 
-                        might need to fetch price or just show "View Details".
-                        For now, let's keep it simple or show 'View for Info'
-                     */}
-              <Link to={`/tracks/${track._id}`}>
-                <span className="text-sm font-bold text-primary hover:underline">
-                  View Details
+            <div className="text-right flex flex-col items-end">
+              {track.totalPrice !== undefined && (
+                <span className="text-lg font-bold text-primary mb-2">
+                  ${track.totalPrice.toFixed(2)}
                 </span>
-              </Link>
+              )}
+              <div className="flex gap-2">
+                <Link to={`/tracks/${track._id}`}>
+                  <span className="text-sm font-bold text-primary hover:underline">
+                    View Details
+                  </span>
+                </Link>
+                <Link to={`/checkout/track/${track._id}`}>
+                  <span className="text-sm font-bold text-white bg-primary px-3 py-1.5 rounded hover:bg-primary/90 transition-colors">
+                    Enroll Now
+                  </span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useTracks, useDeleteTrack } from "../../hooks/useTracks";
+import { useInstructorTracks, useDeleteTrack } from "../../hooks/useTracks";
 import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import Button from "../../shared/components/Button";
 import ConfirmModal from "../../shared/components/ConfirmModal";
 import notification from "../../utils/notification";
+import useAuthStore from "../../Stores/authStore";
 
 const InstructorTracksPage = () => {
+  const { user } = useAuthStore();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const pageCount = 10;
@@ -18,7 +20,10 @@ const InstructorTracksPage = () => {
     isLoading: false,
   });
 
-  const { data, isLoading } = useTracks({ page, pageCount, search });
+  const { data, isLoading } = useInstructorTracks(user?._id || user?.id, {
+    page,
+    limit: pageCount,
+  });
   const { mutate: deleteTrack, isPending: isDeleting } = useDeleteTrack();
 
   const tracks = data?.tracks || [];

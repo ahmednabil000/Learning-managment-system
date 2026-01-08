@@ -64,7 +64,7 @@ const Navbar = () => {
             >
               {t("navbar.about")}
             </Link>
-            {isAuthenticated && (
+            {isAuthenticated && user?.role !== "Instructor" && (
               <Link
                 to="/my-courses"
                 className="text-text-main hover:text-primary transition-colors font-medium"
@@ -150,7 +150,7 @@ const Navbar = () => {
             >
               {t("navbar.about")}
             </Link>
-            {isAuthenticated && (
+            {isAuthenticated && user?.role !== "Instructor" && (
               <Link
                 to="/my-courses"
                 className="block px-3 py-2 rounded-md text-base font-medium text-text-main hover:text-primary hover:bg-background"

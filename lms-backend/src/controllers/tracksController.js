@@ -1,7 +1,7 @@
 const trackService = require("../services/trackService");
 const paginationValidator = require("../validations/paginationValidator");
 const trackValidator = require("../validations/courses/trackValidator");
-
+const logger = require("../config/logger");
 exports.getTrackById = async (req, res) => {
   try {
     const track = await trackService.getTrackById(req.params.id);
@@ -164,6 +164,37 @@ exports.removeCourseFromTrack = async (req, res) => {
     }
     res.json(result);
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+exports.getInstructorTracks = async (req, res) => {
+  try {
+    logger.info("Getting instructor tracks");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const { tracks, totalItems, totalPages } =
+      await trackService.getInstructorTracks(
+        req.params.instructorId,
+        offset,
+        limit
+      );
+
+    res.json({
+      tracks,
+      page,
+      limit,
+      totalItems,
+      totalPages,
+      hasPrevPage: page > 1,
+      hasNextPage: page < totalPages,
+      prevPage: page > 1 ? page - 1 : null,
+      nextPage: page < totalPages ? page + 1 : null,
+    });
+    logger.info("Getting instructor tracks successfully");
+  } catch (error) {
+    logger.error("Getting instructor tracks failed", error);
     res.status(500).json({ message: error.message });
   }
 };

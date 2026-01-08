@@ -21,6 +21,12 @@ const TrackService = {
     const response = await api.get(`/tracks/${id}`);
     return response.data;
   },
+  getInstructorTracks: async (instructorId, { page = 1, limit = 10 } = {}) => {
+    const response = await api.get(`/tracks/instructor/${instructorId}`, {
+      params: { page, limit },
+    });
+    return response.data;
+  },
   createTrack: async (trackData) => {
     const response = await api.post("/tracks", trackData);
     return response.data;
