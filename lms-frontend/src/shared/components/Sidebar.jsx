@@ -6,6 +6,7 @@ import {
   HiOutlineUsers,
   HiOutlineChartBar,
   HiOutlineCog,
+  HiOutlineMap,
 } from "react-icons/hi";
 import { FaClipboardList } from "react-icons/fa";
 
@@ -16,6 +17,12 @@ const Sidebar = () => {
       name: "My Courses",
       path: "/dashboard/courses",
       icon: HiOutlineBookOpen,
+      end: false,
+    },
+    {
+      name: "Tracks",
+      path: "/dashboard/tracks",
+      icon: HiOutlineMap,
       end: false,
     },
     {

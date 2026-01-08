@@ -13,3 +13,4 @@ react-i18next --> for i18n and translations
 i18next --> for i18n and translations
 react-intersection-observer --> for intersection observer
 react-charts --> for charts
+lexical --> for rich text editor

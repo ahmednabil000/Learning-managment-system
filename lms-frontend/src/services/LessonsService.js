@@ -21,6 +21,12 @@ const LessonsService = {
     const response = await api.delete(`/lessons/${id}`);
     return response.data;
   },
+  uploadVideo: async (formData) => {
+    const response = await api.post("/lessons/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  },
 };
 
 export default LessonsService;

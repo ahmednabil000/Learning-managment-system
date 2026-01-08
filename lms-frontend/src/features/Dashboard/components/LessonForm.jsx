@@ -8,12 +8,15 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import Button from "../../../shared/components/Button";
-import CloudinaryService from "../../../services/CloudinaryService";
+import LessonsService from "../../../services/LessonsService";
 import notification from "../../../utils/notification";
 
 const LessonForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || "");
+  // Use publicId based on lessons_api.md
+  const [publicId, setPublicId] = useState(
+    initialData?.publicId || initialData?.videoUrl || ""
+  );
 
   const {
     register,
@@ -45,8 +48,12 @@ const LessonForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
 
     setIsUploading(true);
     try {
-      const url = await CloudinaryService.uploadFile(file, "video");
-      setVideoUrl(url);
+      const formData = new FormData();
+      formData.append("video", file);
+
+      const response = await LessonsService.uploadVideo(formData);
+      // The backend returns { videoUrl: "public_id" }
+      setPublicId(response.videoUrl);
       notification.success("Video uploaded successfully!");
     } catch (err) {
       console.error(err);
@@ -58,7 +65,7 @@ const LessonForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
 
   return (
     <form
-      onSubmit={handleSubmit((data) => onSubmit({ ...data, videoUrl }))}
+      onSubmit={handleSubmit((data) => onSubmit({ ...data, publicId }))}
       className="bg-surface border border-border rounded-xl p-6 space-y-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300"
     >
       <div className="flex justify-between items-center mb-2">
@@ -144,7 +151,7 @@ const LessonForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
             <label
               htmlFor="video-upload"
               className={`flex items-center justify-center gap-2 w-full border-2 border-dashed rounded-lg p-6 text-sm font-medium cursor-pointer transition-all ${
-                videoUrl
+                publicId
                   ? "border-success bg-success/5 text-success"
                   : "border-border hover:border-primary hover:text-primary bg-background/50"
               }`}
@@ -154,7 +161,7 @@ const LessonForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
                   <FaSpinner className="animate-spin text-2xl" />
                   <span>Uploading Video...</span>
                 </div>
-              ) : videoUrl ? (
+              ) : publicId ? (
                 <div className="flex flex-col items-center gap-2">
                   <FaCheckCircle className="text-2xl" />
                   <span>Video Ready & Duration Detected</span>
@@ -190,7 +197,7 @@ const LessonForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
           variant="primary"
           size="sm"
           className="flex items-center gap-2"
-          disabled={isLoading || isUploading || (!videoUrl && !initialData)}
+          disabled={isLoading || isUploading || (!publicId && !initialData)}
         >
           <FaSave /> {isLoading ? "Saving..." : "Save Lesson"}
         </Button>

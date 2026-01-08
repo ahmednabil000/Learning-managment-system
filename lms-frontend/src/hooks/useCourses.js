@@ -9,6 +9,14 @@ export const useCourses = (params) => {
   });
 };
 
+export const useEnrolledCourses = (params) => {
+  return useQuery({
+    queryKey: ["enrolled-courses", params],
+    queryFn: () => CoursesService.fetchEnrolledCourses(params),
+    keepPreviousData: true,
+  });
+};
+
 export const useCourse = (id) => {
   return useQuery({
     queryKey: ["course", id],

@@ -54,7 +54,8 @@
     "enroll_now": "Enroll Now",
     "enroll_success": "Successfully enrolled in",
     "students": "students",
-    "rating": "Rating"
+    "rating": "Rating",
+    "go_to_course": "Go to Course"
   },
   "common": {
     "loading": "Loading..."

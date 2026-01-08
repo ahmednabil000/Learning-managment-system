@@ -1,13 +1,25 @@
 import api from "./api";
 
 const CoursesService = {
-  fetchCourses: async ({ page = 1, pageCount = 10, search = "" }) => {
+  fetchCourses: async ({
+    page = 1,
+    pageCount = 10,
+    search = "",
+    ...filters
+  }) => {
     const response = await api.get("/courses", {
       params: {
         page,
         pageCount,
         search,
+        ...filters,
       },
+    });
+    return response.data;
+  },
+  fetchEnrolledCourses: async ({ page = 1, limit = 10 }) => {
+    const response = await api.get("/courses/my-courses", {
+      params: { page, limit },
     });
     return response.data;
   },

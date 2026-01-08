@@ -13,13 +13,15 @@ import {
   FaCalendarAlt,
   FaClipboardList,
 } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "../../shared/components/Button";
 import {
   formatDuration,
   formatDurationVerbose,
 } from "../../utils/formatDuration";
 import { useAssignmentsByCourse } from "../../hooks/useAssignments";
+import { useCourseBlogs } from "../../hooks/useCourseBlogs";
+import { useCourseAvailableExam } from "../../hooks/useExams";
 import CourseCommentsSection from "./components/CourseCommentsSection";
 
 const CourseDetailsPage = () => {
@@ -28,6 +30,43 @@ const CourseDetailsPage = () => {
   const isRtl = i18n.language === "ar";
   const { data: course, isLoading, isError } = useCourse(courseId);
   const { data: assignments = [] } = useAssignmentsByCourse(courseId);
+  const { data: allBlogs = [] } = useCourseBlogs(courseId, { limit: 1000 });
+
+  // Exam Logic
+  const { data: examData } = useCourseAvailableExam(courseId);
+  const [examState, setExamState] = useState({ status: null, countdown: null });
+
+  useEffect(() => {
+    if (!examData) return;
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const start = new Date(examData.startDate).getTime();
+      const end = start + examData.duration * 60 * 1000;
+
+      let status = "upcoming";
+      let target = start;
+
+      if (now >= start && now < end) {
+        status = "live";
+        target = end;
+      } else if (now >= end) {
+        status = "ended";
+      }
+
+      setExamState({ status, countdown: Math.max(0, target - now) });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [examData]);
+
+  const formatCountdown = (ms) => {
+    if (ms == null || ms < 0) return "00:00:00";
+    const totalSeconds = Math.floor(ms / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${h}h ${m}m ${s}s`;
+  };
+
   const [expandedLectures, setExpandedLectures] = useState({});
 
   const toggleLecture = (lectureId) => {
@@ -37,10 +76,43 @@ const CourseDetailsPage = () => {
     }));
   };
 
+  const getLectureItems = (lecture) => {
+    const lessons = (lecture.lessons || []).map((l) => ({
+      ...l,
+      type: "lesson",
+    }));
+    const blogs = (allBlogs || [])
+      .filter(
+        (b) => b.lecture === lecture._id || b.lecture?._id === lecture._id
+      )
+      .map((b) => ({ ...b, type: "blog" }));
+    return [...lessons, ...blogs].sort(
+      (a, b) => (a.order || 0) - (b.order || 0)
+    );
+  };
+
   const navigate = useNavigate();
 
   const handleEnroll = () => {
-    navigate(`/checkout/${course._id}`);
+    if (course.isEnroll) {
+      const sortedLectures =
+        course.lectures?.sort((a, b) => a.order - b.order) || [];
+      const firstLectureWithLessons = sortedLectures.find(
+        (l) => l.lessons && l.lessons.length > 0
+      );
+
+      if (firstLectureWithLessons) {
+        const sortedLessons = firstLectureWithLessons.lessons.sort(
+          (a, b) => a.order - b.order
+        );
+        navigate(`/courses/${courseId}/lessons/${sortedLessons[0]._id}`);
+      } else {
+        const el = document.getElementById("curriculum-section");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      navigate(`/checkout/${course._id}`);
+    }
   };
 
   if (isLoading) {
@@ -62,52 +134,55 @@ const CourseDetailsPage = () => {
     );
   }
 
+  const totalDuration =
+    course.lectures?.reduce(
+      (acc, lecture) =>
+        acc +
+        (lecture.lessons?.reduce((lAcc, lesson) => lAcc + lesson.duration, 0) ||
+          0),
+      0
+    ) || 0;
+
   const totalLessons =
     course.lectures?.reduce(
       (acc, lecture) => acc + (lecture.lessons?.length || 0),
       0
     ) || 0;
-  // Use the course duration from API (in seconds)
-  const totalDuration = course.totalDuration || 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       {/* Hero Section */}
-      <div className="bg-primary text-white py-12 md:py-20 relative overflow-hidden">
-        {/* Abstract background shapes */}
-        <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-96 h-96 bg-primary-2/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-64 h-64 bg-accent/10 rounded-full blur-2xl"></div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <Link
-            to="/courses"
-            className="inline-flex items-center text-white/80 hover:text-white mb-8 transition-colors"
-          >
-            <FaChevronLeft
-              className={`${isRtl ? "rotate-180" : ""} mr-2 rtl:ml-2 rtl:mr-0`}
-            />
-            Back to Courses
-          </Link>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-            <div className="lg:col-span-2">
-              {course.tag && (
-                <span className="inline-block bg-accent/20 backdrop-blur-md text-accent border border-accent/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
-                  {course.tag.name || course.tag}
-                </span>
-              )}
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+      <div className="bg-primary text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20 z-0"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="lg:col-span-2 space-y-6">
+              <Link
+                to="/courses"
+                className="inline-flex items-center text-white/80 hover:text-white transition-colors mb-4"
+              >
+                <FaChevronLeft
+                  className={`${
+                    isRtl ? "rotate-180" : ""
+                  } mr-2 rtl:ml-2 rtl:mr-0`}
+                />
+                Back to Courses
+              </Link>
+              <h1 className="heading-xl font-extrabold tracking-tight">
                 {course.title}
               </h1>
+              <p className="text-lg text-white/90 leading-relaxed max-w-2xl">
+                {course.description}
+              </p>
 
-              <div className="flex flex-wrap gap-6 items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full border-2 border-white/20 overflow-hidden bg-white/10">
+              <div className="flex flex-wrap items-center gap-6 mt-8">
+                <Link
+                  to={`/instructors/${course.instructor?._id}`}
+                  className="flex items-center gap-3 hover:bg-white/10 p-2 rounded-lg transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/30">
                     <img
-                      src={
-                        course.instructor?.imageUrl ||
-                        "https://via.placeholder.com/100"
-                      }
+                      src={course.instructor?.imageUrl}
                       alt={course.instructor?.name}
                       className="w-full h-full object-cover"
                     />
@@ -116,7 +191,7 @@ const CourseDetailsPage = () => {
                     <p className="text-sm text-white/60">Instructor</p>
                     <p className="font-semibold">{course.instructor?.name}</p>
                   </div>
-                </div>
+                </Link>
                 <div className="h-10 w-px bg-white/20 hidden md:block"></div>
                 <div className="flex items-center gap-2">
                   <FaClock className="text-white/60" />
@@ -139,7 +214,6 @@ const CourseDetailsPage = () => {
                   <>
                     <div className="h-10 w-px bg-white/20 hidden md:block"></div>
                     <div className="flex items-center gap-2">
-                      {/* Using Tag icon or similar for level */}
                       <span className="bg-white/10 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-white/20">
                         {course.level}
                       </span>
@@ -194,7 +268,7 @@ const CourseDetailsPage = () => {
                     className="w-full py-4 text-lg font-bold shadow-lg shadow-primary/20 mb-4"
                     onClick={handleEnroll}
                   >
-                    Enroll Now
+                    {course.isEnroll ? t("courses.go_to_course") : "Enroll Now"}
                   </Button>
 
                   <p className="text-center text-text-muted text-sm italic">
@@ -210,10 +284,71 @@ const CourseDetailsPage = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Exam Notification */}
+        {examData && examState.status && examState.status !== "ended" && (
+          <div
+            className={`mb-8 p-6 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm ${
+              examState.status === "live"
+                ? "bg-error/5 border-error/30"
+                : "bg-primary/5 border-primary/20"
+            }`}
+          >
+            <div className="flex items-start gap-4">
+              <div
+                className={`p-3 rounded-full ${
+                  examState.status === "live"
+                    ? "bg-error/10 text-error"
+                    : "bg-primary/10 text-primary"
+                }`}
+              >
+                <FaClipboardList size={24} />
+              </div>
+              <div>
+                <h3
+                  className={`text-xl font-bold ${
+                    examState.status === "live" ? "text-error" : "text-primary"
+                  }`}
+                >
+                  {examState.status === "live"
+                    ? "Live Exam In Progress!"
+                    : "Upcoming Exam"}
+                </h3>
+                <p className="text-text-main font-bold mt-1 text-lg">
+                  {examData.title}
+                </p>
+                <p className="text-sm text-text-muted max-w-xl">
+                  {examData.description}
+                </p>
+              </div>
+            </div>
+            <div className="text-right flex flex-col items-center md:items-end min-w-[200px]">
+              <p className="text-xs text-text-muted uppercase tracking-wider font-bold mb-1">
+                {examState.status === "live" ? "Time Remaining" : "Starts In"}
+              </p>
+              <p className="text-3xl font-mono font-black text-text-main tracking-tight">
+                {formatCountdown(examState.countdown)}
+              </p>
+              {examState.status === "live" && (
+                <Link to={`/courses/${courseId}/exams/${examData._id}`}>
+                  <Button
+                    variant="primary"
+                    className="mt-3 bg-error hover:bg-error/90 border-error w-full shadow-lg shadow-error/20"
+                    size="lg"
+                  >
+                    Take Exam Now
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Curriculum */}
           <div className="lg:col-span-2">
-            <h2 className="heading-l text-primary mb-8 flex items-center gap-3">
+            <h2
+              id="curriculum-section"
+              className="heading-l text-primary mb-8 flex items-center gap-3"
+            >
               <div className="w-2 h-8 bg-accent rounded-full"></div>
               Curriculum
             </h2>
@@ -239,7 +374,7 @@ const CourseDetailsPage = () => {
                             {lecture.title}
                           </h3>
                           <p className="text-xs text-text-muted">
-                            {lecture.lessons?.length || 0} lessons
+                            {getLectureItems(lecture).length} items
                           </p>
                         </div>
                       </div>
@@ -252,26 +387,44 @@ const CourseDetailsPage = () => {
 
                     {expandedLectures[lecture._id] && (
                       <div className="border-t border-border bg-background/30">
-                        {/* Lessons */}
-                        {lecture.lessons
-                          ?.sort((a, b) => a.order - b.order)
-                          .map((lesson) => (
+                        {/* Mixed Items */}
+                        {getLectureItems(lecture).map((item) =>
+                          item.type === "lesson" ? (
                             <Link
-                              key={lesson._id}
-                              to={`/courses/${courseId}/lessons/${lesson._id}`}
+                              key={item._id}
+                              to={`/courses/${courseId}/lessons/${item._id}`}
                               className="px-6 py-4 flex items-center justify-between border-b border-border last:border-0 hover:bg-white transition-colors cursor-pointer"
                             >
                               <div className="flex items-center gap-3">
                                 <FaPlayCircle className="text-primary/40" />
                                 <span className="text-sm font-medium text-text-main">
-                                  {lesson.title}
+                                  {item.title}
                                 </span>
                               </div>
                               <span className="text-xs text-text-muted font-mono">
-                                {formatDuration(lesson.duration || 0).formatted}
+                                {formatDuration(item.duration || 0).formatted}
                               </span>
                             </Link>
-                          ))}
+                          ) : (
+                            <Link
+                              key={item._id}
+                              to={`/courses/${courseId}/blogs/${item._id}`}
+                              className="px-6 py-4 flex items-center justify-between border-b border-border last:border-0 hover:bg-white transition-colors cursor-pointer"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="text-primary/40">
+                                  <FaBookOpen />
+                                </div>
+                                <span className="text-sm font-medium text-text-main">
+                                  {item.title}
+                                </span>
+                              </div>
+                              <span className="text-xs text-text-muted font-mono">
+                                Blog
+                              </span>
+                            </Link>
+                          )
+                        )}
 
                         {/* Assignments */}
                         {assignments &&
@@ -280,7 +433,7 @@ const CourseDetailsPage = () => {
                               (a) =>
                                 a.lecture === lecture._id ||
                                 a.lectureId === lecture._id
-                            ) // Handle both potential backend responses
+                            )
                             .map((assignment) => (
                               <Link
                                 key={assignment._id}
@@ -310,16 +463,21 @@ const CourseDetailsPage = () => {
             <div className="bg-surface border border-border rounded-3xl p-8 mb-8 shadow-sm">
               <h3 className="heading-m text-primary mb-6">Instructor</h3>
               <div className="flex flex-col items-center text-center">
-                <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-primary/10">
-                  <img
-                    src={course.instructor?.imageUrl}
-                    alt={course.instructor?.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h4 className="text-xl font-bold text-text-main mb-1">
-                  {course.instructor?.name}
-                </h4>
+                <Link
+                  to={`/instructors/${course.instructor?._id}`}
+                  className="group cursor-pointer flex flex-col items-center"
+                >
+                  <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-primary/10 group-hover:border-primary transition-colors">
+                    <img
+                      src={course.instructor?.imageUrl}
+                      alt={course.instructor?.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h4 className="text-xl font-bold text-text-main mb-1 group-hover:text-primary transition-colors">
+                    {course.instructor?.name}
+                  </h4>
+                </Link>
                 <p className="text-secondary font-medium mb-4">
                   {course.instructor?.role}
                 </p>

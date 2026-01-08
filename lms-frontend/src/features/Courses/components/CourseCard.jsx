@@ -1,18 +1,22 @@
 import PropTypes from "prop-types";
 import Card from "../../../shared/components/Card";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaUser, FaArrowRight } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../../../shared/components/Button";
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, isEnrolled }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleEnroll = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate(`/checkout/${course._id}`);
+    if (course.isEnroll || isEnrolled) {
+      navigate(`/courses/${course._id}`);
+    } else {
+      navigate(`/checkout/${course._id}`);
+    }
   };
 
   const price = parseFloat(course.price);
@@ -25,9 +29,18 @@ const CourseCard = ({ course }) => {
     (discount > 0 && !isNaN(salePrice)) ||
     (!isNaN(salePrice) && !isNaN(price) && salePrice < price);
 
+  // Use rate or rating (fallback)
+  const ratingValue =
+    course.rate !== undefined ? course.rate : course.rating || 0;
+  // Use studentsCount or students (fallback)
+  const studentsValue =
+    course.studentsCount !== undefined
+      ? course.studentsCount
+      : course.students || 0;
+
   return (
-    <Link to={`/courses/${course._id}`} className="block h-full">
-      <Card className="p-0 overflow-hidden flex flex-col h-full bg-surface border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
+    <Link to={`/courses/${course._id}`} className="block h-full group">
+      <Card className="p-0 overflow-hidden flex flex-col h-full bg-surface border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
         <div className="relative w-full aspect-video overflow-hidden bg-gray-100">
           <img
             src={
@@ -38,68 +51,86 @@ const CourseCard = ({ course }) => {
             className="w-full h-full object-cover"
           />
           {course.category && (
-            <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-primary text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm border border-border">
+            <span className="absolute top-3 left-3 bg-white/95 backdrop-blur-md text-primary text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-full shadow-sm">
               {course.category}
             </span>
           )}
-          {isSale && discount > 0 && (
-            <span className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+          {course.level && (
+            <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] uppercase tracking-wider font-semibold px-2 py-1 rounded">
+              {course.level}
+            </span>
+          )}
+          {isSale && discount > 0 && !isEnrolled && (
+            <span className="absolute top-3 right-3 bg-error text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
               -{Math.round(discount)}%
             </span>
           )}
         </div>
 
         <div className="p-5 flex flex-col grow">
-          <h3 className="text-lg font-bold text-text-main mb-2 line-clamp-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <FaStar className="text-yellow-400 h-3.5 w-3.5" />
+              <span className="text-text-main font-bold text-sm">
+                {ratingValue.toFixed(1)}
+              </span>
+              {course.reviewCount > 0 && (
+                <span className="text-text-muted text-xs">
+                  ({course.reviewCount})
+                </span>
+              )}
+            </div>
+            {studentsValue > 0 && (
+              <div className="flex items-center gap-1.5 text-text-muted text-xs">
+                <FaUser className="h-3 w-3" />
+                <span>{studentsValue}</span>
+              </div>
+            )}
+          </div>
+
+          <h3 className="text-lg font-bold text-text-main mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
             {course.title}
           </h3>
-          <p className="text-sm text-text-muted mb-4 line-clamp-2 flex-grow">
+          <p className="text-sm text-text-muted mb-4 line-clamp-2 flex-grow leading-relaxed">
             {course.description}
           </p>
 
-          <div className="mt-auto space-y-4">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-3">
-                {course.rating !== undefined && (
-                  <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded-full border border-yellow-100">
-                    <FaStar className="text-yellow-400 h-3.5 w-3.5" />
-                    <span className="text-yellow-700 font-semibold text-xs">
-                      {course.rating}
-                    </span>
-                  </div>
-                )}
-                {course.students !== undefined && (
-                  <span className="text-text-muted text-xs font-medium">
-                    {course.students} {t("courses.students")}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-3 border-t border-border">
+          <div className="mt-auto pt-4 border-t border-border/50">
+            <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                {isSale ? (
-                  <>
+                {!isEnrolled &&
+                  (isSale ? (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xl font-bold text-primary">
+                        ${salePrice}
+                      </span>
+                      <span className="text-xs text-text-muted line-through font-medium">
+                        ${price}
+                      </span>
+                    </div>
+                  ) : (
                     <span className="text-xl font-bold text-primary">
-                      ${salePrice}
-                    </span>
-                    <span className="text-xs text-text-muted line-through">
                       ${price}
                     </span>
-                  </>
-                ) : (
-                  <span className="text-xl font-bold text-primary">
-                    ${price}
-                  </span>
-                )}
+                  ))}
               </div>
               <Button
-                variant="primary"
+                variant={course.isEnroll || isEnrolled ? "outline" : "primary"}
                 size="sm"
                 onClick={handleEnroll}
-                className="px-5 rounded-lg"
+                className={`rounded-lg transition-all ${
+                  course.isEnroll || isEnrolled
+                    ? "border-primary text-primary hover:bg-primary hover:text-white"
+                    : "shadow-lg shadow-primary/20 hover:shadow-primary/40"
+                }`}
               >
-                {t("courses.enroll_now")}
+                {course.isEnroll || isEnrolled ? (
+                  <span className="flex items-center gap-2">
+                    {t("courses.go_to_course")} <FaArrowRight size={12} />
+                  </span>
+                ) : (
+                  t("courses.enroll_now")
+                )}
               </Button>
             </div>
           </div>
@@ -120,8 +151,13 @@ CourseCard.propTypes = {
     isSale: PropTypes.bool,
     imageUrl: PropTypes.string,
     category: PropTypes.string,
+    level: PropTypes.string,
     rating: PropTypes.number,
+    rate: PropTypes.number,
     students: PropTypes.number,
+    studentsCount: PropTypes.number,
+    reviewCount: PropTypes.number,
+    isEnroll: PropTypes.bool,
   }).isRequired,
 };
 

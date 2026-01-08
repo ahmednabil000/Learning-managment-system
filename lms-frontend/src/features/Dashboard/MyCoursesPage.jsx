@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCourses, useDeleteCourse } from "../../hooks/useCourses";
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaPercent } from "react-icons/fa";
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaSearch,
+  FaPercent,
+  FaNewspaper,
+} from "react-icons/fa";
 import Button from "../../shared/components/Button";
 import ConfirmModal from "../../shared/components/ConfirmModal";
 import notification from "../../utils/notification";
@@ -325,6 +332,7 @@ const MyCoursesPage = () => {
                         >
                           <FaPercent />
                         </Button>
+
                         <Link to={`/dashboard/courses/${course._id}/edit`}>
                           <Button
                             variant="ghost"

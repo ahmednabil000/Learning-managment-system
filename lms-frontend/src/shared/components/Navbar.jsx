@@ -11,7 +11,7 @@ const Navbar = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
-  const { isAuthenticated,user, clearToken } = useAuthStore();
+  const { isAuthenticated, user, clearToken } = useAuthStore();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -32,7 +32,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
+          <div className="shrink-0 flex items-center">
             <Link to="/" className="heading-m text-primary font-bold">
               EduSphere
             </Link>
@@ -64,6 +64,14 @@ const Navbar = () => {
             >
               {t("navbar.about")}
             </Link>
+            {isAuthenticated && (
+              <Link
+                to="/my-courses"
+                className="text-text-main hover:text-primary transition-colors font-medium"
+              >
+                {"My Learning"}
+              </Link>
+            )}
           </div>
 
           {/* Auth Buttons & Lang Switcher */}
@@ -142,6 +150,15 @@ const Navbar = () => {
             >
               {t("navbar.about")}
             </Link>
+            {isAuthenticated && (
+              <Link
+                to="/my-courses"
+                className="block px-3 py-2 rounded-md text-base font-medium text-text-main hover:text-primary hover:bg-background"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {"My Learning"}
+              </Link>
+            )}
           </div>
           <div className="pt-4 pb-4 border-t border-border px-4 space-y-3">
             {isAuthenticated ? (

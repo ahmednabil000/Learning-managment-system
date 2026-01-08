@@ -14,9 +14,14 @@ import LoginPage from "./features/Auth/LoginPage";
 import SignupPage from "./features/Auth/SignupPage";
 
 import CoursesPage from "./features/Courses/CoursesPage";
+import MyEnrolledCoursesPage from "./features/Courses/MyEnrolledCoursesPage";
 import CourseDetailsPage from "./features/Courses/CourseDetailsPage";
 import LessonViewPage from "./features/Courses/LessonViewPage";
 import StudentAssignmentPage from "./features/Courses/StudentAssignmentPage";
+import ExamPage from "./features/Courses/ExamPage";
+import InstructorDetailsPage from "./features/Instructors/InstructorDetailsPage";
+import TracksPage from "./features/Tracks/TracksPage";
+import TrackDetailsPage from "./features/Tracks/TrackDetailsPage";
 
 import AuthSuccess from "./features/Auth/AuthSuccess";
 import PaymentCompletionPage from "./features/payments/PaymentCompletionPage";
@@ -26,12 +31,17 @@ import DashboardLayout from "./shared/layouts/DashboardLayout";
 import InstructorDashboard from "./features/Dashboard/InstructorDashboard";
 import MyCoursesPage from "./features/Dashboard/MyCoursesPage";
 import CourseFormPage from "./features/Dashboard/CourseFormPage";
+import InstructorTracksPage from "./features/Dashboard/InstructorTracksPage";
+import TrackFormPage from "./features/Dashboard/TrackFormPage";
 
 import NotAuthorized from "./shared/components/NotAuthorized";
 import NotFound from "./shared/components/NotFound";
 import LiveSessionPage from "./features/LiveSessions/LiveSessionPage";
 import RecordingPlaybackPage from "./features/LiveSessions/RecordingPlaybackPage";
 import InstructorLiveSessionsPage from "./features/Dashboard/InstructorLiveSessionsPage";
+import BlogDetailsPage from "./features/Courses/BlogDetailsPage";
+import CreateCourseBlogPage from "./features/Dashboard/CreateCourseBlogPage";
+import CourseBlogViewPage from "./features/Courses/CourseBlogViewPage";
 
 const router = createBrowserRouter([
   {
@@ -60,15 +70,35 @@ const router = createBrowserRouter([
       },
       {
         path: "checkout/:courseId",
-        element: <CheckoutForm />,
+        element: (
+          <ProtectedRoute roles={["Student"]}>
+            <CheckoutForm />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "courses",
         element: <CoursesPage />,
       },
       {
+        path: "my-courses",
+        element: (
+          <ProtectedRoute>
+            <MyEnrolledCoursesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "courses/:courseId",
         element: <CourseDetailsPage />,
+      },
+      {
+        path: "tracks",
+        element: <TracksPage />,
+      },
+      {
+        path: "tracks/:trackId",
+        element: <TrackDetailsPage />,
       },
       {
         path: "courses/:courseId/lessons/:lessonId",
@@ -77,6 +107,22 @@ const router = createBrowserRouter([
       {
         path: "courses/:courseId/assignments/:assignmentId",
         element: <StudentAssignmentPage />,
+      },
+      {
+        path: "courses/:courseId/exams/:examId",
+        element: <ExamPage />,
+      },
+      {
+        path: "instructors/:instructorId",
+        element: <InstructorDetailsPage />,
+      },
+      {
+        path: "blogs/:blogId",
+        element: <BlogDetailsPage />,
+      },
+      {
+        path: "courses/:courseId/blogs/:blogId",
+        element: <CourseBlogViewPage />,
       },
       {
         path: "live-session/:sessionName",
@@ -119,6 +165,22 @@ const router = createBrowserRouter([
       {
         path: "courses/:id/edit",
         element: <CourseFormPage mode="edit" />,
+      },
+      {
+        path: "tracks",
+        element: <InstructorTracksPage />,
+      },
+      {
+        path: "tracks/new",
+        element: <TrackFormPage mode="create" />,
+      },
+      {
+        path: "tracks/:id/edit",
+        element: <TrackFormPage mode="edit" />,
+      },
+      {
+        path: "courses/:courseId/create-blog",
+        element: <CreateCourseBlogPage />,
       },
       {
         path: "live-sessions",
