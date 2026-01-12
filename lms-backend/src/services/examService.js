@@ -1,5 +1,5 @@
 const { Exam, ExamQuestion, ExamAttempt } = require("../models/index");
-const UserEnroll = require("../models/userEnroll");
+const UserEnroll = require("../models/UserEnroll");
 const Course = require("../models/courses/course");
 
 module.exports.createExam = async (userId, examData) => {

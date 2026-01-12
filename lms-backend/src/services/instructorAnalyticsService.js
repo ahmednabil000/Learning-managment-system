@@ -1,5 +1,5 @@
 const Course = require("../models/courses/course");
-const UserEnroll = require("../models/userEnroll");
+const UserEnroll = require("../models/UserEnroll");
 const CourseComment = require("../models/courses/courseComment");
 
 module.exports.coursesCount = async (instructorId, startDate, endDate) => {

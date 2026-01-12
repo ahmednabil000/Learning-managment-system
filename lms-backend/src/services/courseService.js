@@ -1,6 +1,6 @@
 const { Course, Lecture, Lesson, CourseTag } = require("../models");
 const CourseSale = require("../models/courses/courseSale");
-const UserEnroll = require("../models/userEnroll");
+const UserEnroll = require("../models/UserEnroll");
 const CourseComment = require("../models/courses/courseComment");
 
 exports.getCourseById = async (id, userId = null) => {

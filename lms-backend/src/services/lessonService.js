@@ -1,5 +1,5 @@
 const Lesson = require("../models/courses/lesson");
-const UserEnroll = require("../models/userEnroll");
+const UserEnroll = require("../models/UserEnroll");
 const cloudinary = require("../config/cloudinary");
 
 module.exports.createLesson = async ({

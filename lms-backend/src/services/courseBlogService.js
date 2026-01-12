@@ -1,7 +1,7 @@
 const CourseBlog = require("../models/courseBlog");
 const Course = require("../models/courses/course");
 const Lecture = require("../models/courses/lecture");
-const UserEnroll = require("../models/userEnroll");
+const UserEnroll = require("../models/UserEnroll");
 
 module.exports.createCourseBlog = async (userId, courseBlog) => {
   const course = await Course.findOne({ _id: courseBlog.course });
