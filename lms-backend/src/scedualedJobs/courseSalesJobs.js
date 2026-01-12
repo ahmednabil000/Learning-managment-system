@@ -2,7 +2,6 @@ const CourseSale = require("../models/courses/courseSale");
 
 async function deactivateExpiredCourseSales() {
   try {
-    console.log("[Cron] Checking for expired course sales...");
     const result = await CourseSale.updateMany(
       {
         status: "active",
@@ -12,9 +11,6 @@ async function deactivateExpiredCourseSales() {
     );
 
     if (result.modifiedCount > 0) {
-      console.log(
-        `[Cron] Deactivated ${result.modifiedCount} expired course sales.`
-      );
     }
   } catch (error) {
     console.error(

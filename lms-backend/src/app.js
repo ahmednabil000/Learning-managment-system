@@ -62,9 +62,7 @@ cron.schedule("*/1 * * * *", () => {
 
 mongoose
   .connect(process.env.MONGO_ATLAS, { dbName: "your_atlas_db_name" })
-  .then(() => {
-    console.log("Connected to MongoDB");
-  })
+  .then(() => {})
   .catch((error) => {
     console.error("Error connecting to MongoDB:", error);
   });

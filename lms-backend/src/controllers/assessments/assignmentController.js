@@ -114,7 +114,7 @@ module.exports.getAssignmentsByCourseId = async (req, res) => {
       parseInt(page),
       parseInt(pageCount)
     );
-    console.log(result);
+
     logger.info(`End fetching course ${req.query.courseId} assignments`);
     res.status(200).json(result);
   } catch (error) {

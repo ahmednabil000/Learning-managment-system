@@ -61,7 +61,7 @@ module.exports.getLessonsByLectureId = async (req, res) => {
     const lessons = await lessonService.getLessonsByLectureId(
       req.params.lectureId
     );
-    console.log(lessons);
+
     return res.status(200).json(lessons);
   } catch (error) {
     return res.status(500).json({ message: error.message });

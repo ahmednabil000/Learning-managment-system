@@ -29,7 +29,7 @@ const InstructorTracksPage = () => {
 
   const tracks = data?.tracks || [];
   const totalPages = data?.totalPages || 1;
-  console.log(tracks);
+
   const handleDelete = (id) => {
     setDeleteModal({
       isOpen: true,

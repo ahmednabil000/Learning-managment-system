@@ -6,7 +6,6 @@ module.exports.createQuestion = async (req, res) => {
   try {
     logger.info("Start creating question");
     const { error, value } = questionValidator.validate(req.body);
-    console.log(value);
 
     if (error) {
       logger.error(error.details[0].message);
@@ -23,7 +22,6 @@ module.exports.createQuestion = async (req, res) => {
 
 module.exports.getQuestionById = async (req, res) => {
   try {
-    console.log("rec2");
     const result = await questionService.getQuestionById(
       req.user.id,
       req.params.id
@@ -74,10 +72,8 @@ module.exports.getQuestions = async (req, res) => {
 
 module.exports.updateQuestion = async (req, res) => {
   try {
-    console.log("test");
     const { error, value } = questionValidator.validate(req.body);
-    console.log(value);
-    console.log(error);
+
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }

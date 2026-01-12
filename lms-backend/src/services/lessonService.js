@@ -113,7 +113,6 @@ module.exports.getLessonById = async (id, userId) => {
       expiration: Math.floor(Date.now() / 1000) + 1800, // 30 minutes
     });
     lesson.url = signedUrl;
-    console.log(lesson);
   }
 
   return { status: 200, lesson };

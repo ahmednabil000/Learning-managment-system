@@ -99,7 +99,7 @@ module.exports.getCourseAvailableExam = async (req, res) => {
       req.user.id,
       req.params.courseId
     );
-    console.log(result);
+
     logger.info("end getCourseAvailableExam");
     res.status(result.statusCode).json(result);
   } catch (err) {
@@ -139,7 +139,7 @@ module.exports.getExamsByCourseId = async (req, res) => {
       req.user.id,
       req.params.courseId
     );
-    console.log(result);
+
     logger.info("end getExamsByCourseId");
     res.status(result.statusCode).json(result);
   } catch (err) {

@@ -14,7 +14,6 @@ exports.getCourseById = async (req, res) => {
 
     res.json(course);
   } catch (error) {
-    console.log(error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -67,7 +66,6 @@ exports.getCourses = async (req, res) => {
 
 exports.createCourse = async (req, res) => {
   try {
-    console.log("rec");
     const { error, value } = courseValidator.validate(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
@@ -85,7 +83,6 @@ exports.createCourse = async (req, res) => {
     });
     res.status(201).json(course);
   } catch (error) {
-    console.log(error.message);
     res.status(500).json({ message: error.message });
   }
 };

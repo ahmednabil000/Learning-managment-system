@@ -54,7 +54,6 @@ exports.createQuestion = async ({
 };
 
 exports.updateQuestionById = async (id, updateData) => {
-  console.log("testing");
   return await Question.findOneAndUpdate({ _id: id }, updateData, {
     new: true,
   });
@@ -117,7 +116,6 @@ exports.removeQuestionFromExam = async (questionId) => {
 };
 
 exports.getQuestionsByAssignmentId = async (assignmentId) => {
-  console.log(assignmentId);
   return await Question.find({ assignment: assignmentId });
 };
 

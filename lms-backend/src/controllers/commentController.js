@@ -8,14 +8,13 @@ const logger = require("../config/logger");
 module.exports.createComment = async (req, res) => {
   try {
     logger.info("Start createComment");
-    console.log(req.body);
+
     const { error, value } = commentValidator.validate(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
     const result = await commentService.createComment(req.user.id, value);
     if (result.statusCode) {
-      console.log(result.statusCode);
       return res.status(result.statusCode).json({ message: result.message });
     }
     logger.info("End createComment");

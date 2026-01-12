@@ -13,7 +13,6 @@ exports.createSession = async (
   recordingEnabled = false,
   maxParticipants = null
 ) => {
-  console.log("Creating live session");
   const room = await dailyClient.post("/rooms", {
     privacy: "public",
     properties: {
@@ -43,11 +42,11 @@ exports.getSessionByName = async (name) => {
   if (!room.data || Object.keys(room.data).length === 0) {
     throw new Error("Session not found");
   }
-  console.log(room);
+
   const session = await LiveSession.findOne({
     roomName: room.data.name,
   }).populate("createdBy", "name");
-  console.log(session);
+
   if (!session) {
     throw new Error("Session not found");
   }
@@ -150,7 +149,6 @@ exports.startSessionRecording = async (userId, sessionName) => {
     };
   }
 
-  console.log("Starting recording");
   const result = await dailyClient.post(
     `/rooms/${sessionName}/recordings/start`
   );
@@ -239,7 +237,6 @@ exports.getSessionRecording = async (userId, sessionName) => {
 };
 
 exports.getSessionToken = async (user, sessionName) => {
-  console.log("rec");
   const tokenRes = await dailyClient.post("/meeting-tokens", {
     properties: {
       room_name: sessionName,

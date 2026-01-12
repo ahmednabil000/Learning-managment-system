@@ -3,7 +3,7 @@ const Lecture = require("../models/courses/lecture");
 
 module.exports.createComment = async (userId, commentData) => {
   const parentComment = await Comment.findById(commentData.parentComment);
-  console.log("rec");
+
   if (!parentComment && commentData.parentComment) {
     return { statusCode: 404, message: "Parent comment not found" };
   }

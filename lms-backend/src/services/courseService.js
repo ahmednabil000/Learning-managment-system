@@ -74,7 +74,7 @@ exports.getCourseById = async (id, userId = null) => {
   course.enrollmentCount = await UserEnroll.countDocuments({
     course: course._id,
   });
-  console.log(course);
+
   return course;
 };
 
@@ -280,7 +280,6 @@ module.exports.removeCourseDiscount = async (userId, courseId) => {
 };
 
 module.exports.getInstructorCourses = async (userId, page, limit) => {
-  console.log("rec");
   const courses = await Course.find({ instructor: userId })
     .populate("tag")
     .skip((page - 1) * limit)

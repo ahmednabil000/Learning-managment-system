@@ -76,7 +76,7 @@ module.exports.getAllTracks = async (offset, limit, search = "") => {
         }
       : { isActive: true }
   );
-  console.log(tracks);
+
   const totalPages = Math.ceil(totalItems / limit);
   return { tracks, totalItems, totalPages };
 };

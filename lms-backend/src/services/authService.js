@@ -22,16 +22,15 @@ function generateToken(payload) {
 
 async function login(email, password) {
   const user = await User.findOne({ email });
-  console.log("Rex", user);
+
   if (!user) return { statusCode: 404, message: "User not found" };
   if (email == "test@gmail.com") {
-    console.log("Rex");
     const t = generateToken({
       id: user.id,
       email: user.email,
       role: user.role,
     });
-    console.log("Rex", t);
+
     return {
       token: t,
       user: { id: user.id, email: user.email, role: user.role },

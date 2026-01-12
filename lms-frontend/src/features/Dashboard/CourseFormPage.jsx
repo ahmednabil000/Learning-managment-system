@@ -78,7 +78,6 @@ const CourseFormPage = ({ mode = "create" }) => {
   };
 
   const onSubmit = (data) => {
-    console.log(data);
     const payload = {
       title: data.title,
       description: data.description,

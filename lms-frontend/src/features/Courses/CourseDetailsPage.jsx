@@ -99,7 +99,6 @@ const CourseDetailsPage = () => {
       setShowPreview(true);
     } else {
       // Fallback or notification if no video found
-      console.log("No lessons available for preview");
     }
   };
 

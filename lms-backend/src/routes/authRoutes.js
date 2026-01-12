@@ -31,8 +31,6 @@ router.get(
     const token = generateToken(req.user);
     let callback = "/";
     try {
-      console.log("recieved");
-      console.log(req.query.state);
       callback = JSON.stringify(req.query.state);
     } catch (e) {}
     // Option 1: redirect with token

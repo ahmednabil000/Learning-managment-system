@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const Lecture = require("../models/courses/lecture");
 
 exports.createLecture = async ({ title, description, courseId, order }) => {
-  console.log("start create new lecture");
   try {
     const lecture = await Lecture.create({
       title,
@@ -11,9 +10,7 @@ exports.createLecture = async ({ title, description, courseId, order }) => {
       order,
     });
     return lecture;
-  } catch (error) {
-    console.log(error.message);
-  }
+  } catch (error) {}
 };
 
 exports.updateLecture = async ({ id, title, description, courseId, order }) => {
@@ -35,8 +32,6 @@ exports.updateLecture = async ({ id, title, description, courseId, order }) => {
 
 exports.deleteLecture = async (id) => {
   try {
-    console.log("Start lecture delete service");
-
     const lecture = await Lecture.findOne({ _id: id });
 
     if (!lecture) {
@@ -45,9 +40,7 @@ exports.deleteLecture = async (id) => {
 
     await lecture.deleteOne();
     return lecture;
-  } catch (error) {
-    console.log(error.message);
-  }
+  } catch (error) {}
 };
 
 exports.addLessonToLecture = async ({ lectureId, lessonId }) => {

@@ -10,20 +10,15 @@ async function seedData() {
   try {
     if (!process.env.MONGO_ATLAS) {
       // Fallback if not using MONGO_ATLAS var yet
-      console.log(
-        "No MONGO_ATLAS env var, relying on default connection logic"
-      );
     }
     // Connect explicitly here as this is a standalone script
     await mongoose.connect(process.env.MONGO_ATLAS, {
       dbName: "your_atlas_db_name",
     });
-    console.log("Connected to DB");
 
     // Attempt to clean up rogue index causing issues
     try {
       await CourseTag.collection.dropIndex("id_1");
-      console.log("Dropped rogue index id_1 on coursetags");
     } catch (e) {
       // Ignore if index doesn't exist
     }
@@ -41,7 +36,6 @@ async function seedData() {
         description: "An expert instructor for mock data.",
         imageUrl: "https://via.placeholder.com/150",
       });
-      console.log("Created Mock Instructor");
     }
 
     // 2. Create Tags
@@ -58,7 +52,6 @@ async function seedData() {
       }
       tags.push(tag);
     }
-    console.log("Tags ready");
 
     // 3. Create Courses
     const coursesData = [
@@ -133,9 +126,7 @@ async function seedData() {
       let course = await Course.findOne({ title: cData.title });
       if (!course) {
         course = await Course.create(cData);
-        console.log(`Created new course: ${cData.title}`);
       } else {
-        console.log(`Course already exists: ${cData.title}`);
       }
       createdCourses.push(course);
     }
@@ -167,14 +158,10 @@ async function seedData() {
       const track = await Track.findOne({ title: tData.title });
       if (!track) {
         await Track.create(tData);
-        console.log(`Created new track: ${tData.title}`);
       } else {
-        console.log(`Track already exists: ${tData.title}`);
       }
     }
-    console.log(`Created ${tracksData.length} tracks`);
 
-    console.log("Mock data seeding completed successfully.");
     process.exit(0);
   } catch (error) {
     console.error("Error seeding data:", error);

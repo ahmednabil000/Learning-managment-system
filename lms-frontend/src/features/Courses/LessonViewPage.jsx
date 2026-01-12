@@ -33,7 +33,7 @@ const LessonViewPage = () => {
   const currentLectureId = course?.lectures?.find((lecture) =>
     lecture.lessons?.some((lesson) => lesson._id === lessonId)
   )?._id;
-  console.log(currentLesson);
+
   if (courseLoading || lessonLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

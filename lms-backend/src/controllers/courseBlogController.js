@@ -24,7 +24,6 @@ exports.createCourseBlog = async (req, res) => {
 
 exports.getAllCourseBlogs = async (req, res) => {
   try {
-    console.log("rex");
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
