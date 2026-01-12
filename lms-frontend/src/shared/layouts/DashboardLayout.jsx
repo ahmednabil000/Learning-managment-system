@@ -3,12 +3,14 @@ import { Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { HiMenuAlt2 } from "react-icons/hi";
+import ScrollToTop from "../components/ScrollToTop";
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <ScrollToTop />
       <Navbar />
       <div className="flex flex-1 relative">
         <Sidebar
