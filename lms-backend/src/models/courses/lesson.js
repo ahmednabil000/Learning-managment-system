@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+// Fix require path casing for linux
 const { v4: uuidv4 } = require("uuid");
 
 const LectureItem = require("./lectureItem");
