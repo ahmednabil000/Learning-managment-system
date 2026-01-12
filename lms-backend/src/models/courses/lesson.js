@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 
-const LectureItem = require("./lectureitem");
+const LectureItem = require("./lectureItem");
 
 const lessonSchema = new mongoose.Schema({
   publicId: String,

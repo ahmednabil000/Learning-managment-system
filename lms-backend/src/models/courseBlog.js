@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 
-const LectureItem = require("./courses/lectureitem");
+const LectureItem = require("./courses/lectureItem");
 
 const courseBlogSchema = new mongoose.Schema({
   content: {

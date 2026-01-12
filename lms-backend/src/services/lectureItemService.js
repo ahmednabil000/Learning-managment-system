@@ -1,4 +1,4 @@
-const LectureItem = require("../models/courses/lectureitem");
+const LectureItem = require("../models/courses/lectureItem");
 const { getLectureById } = require("./lectureService");
 const Course = require("../models/courses/course");
 
