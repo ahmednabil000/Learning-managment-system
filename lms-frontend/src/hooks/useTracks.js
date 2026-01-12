@@ -96,3 +96,10 @@ export const useRemoveCourseFromTrack = (options = {}) => {
     },
   });
 };
+
+export const useTopTracks = (limit = 10) => {
+  return useQuery({
+    queryKey: ["top-tracks", limit],
+    queryFn: () => TrackService.getTopTracks(limit),
+  });
+};

@@ -1,12 +1,17 @@
 import { useState } from "react";
-import { useCourses } from "../../../hooks/useCourses";
+import { useInstructorCourses } from "../../../hooks/useCourses";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import Button from "../../../shared/components/Button";
+import useAuthStore from "../../../Stores/authStore";
 
 const SelectCourseModal = ({ isOpen, onClose, onSelectCourse }) => {
   const [search, setSearch] = useState("");
-  const { data, isLoading } = useCourses({ search, pageCount: 50 });
-  const courses = data?.shortCourses || [];
+  const { user } = useAuthStore();
+  const { data, isLoading } = useInstructorCourses(user?.id, {
+    search,
+    limit: 50,
+  });
+  const courses = data?.courses || [];
 
   if (!isOpen) return null;
 

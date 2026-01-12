@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
   baseOptions
 );
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 // Instructor Discriminator
 const instructorSchema = new mongoose.Schema({

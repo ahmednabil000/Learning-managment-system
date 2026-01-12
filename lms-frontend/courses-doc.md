@@ -459,3 +459,207 @@ Fetches all courses the authenticated user is currently enrolled in.
   "nextPage": null
 }
 ```
+
+---
+
+---
+
+## 10. Manage Course Learning Items
+
+### Add Learning Item
+
+Adds a new "What you will learn" item to the course.
+
+- **Endpoint**: `/:id/learning`
+- **Method**: `POST`
+- **Headers**: `Authorization: Bearer <token>`
+- **Path Parameters**:
+  - `id` (required): Course UUID
+- **Request Body**:
+  ```json
+  {
+    "learningItem": "Master React Hooks and Context API"
+  }
+  ```
+- **Response** (200 OK):
+  ```json
+  {
+    "_id": "course-uuid",
+    "title": "React Course",
+    "learning": [
+      "Understand Components",
+      "Master React Hooks and Context API"
+    ],
+    ...
+  }
+  ```
+
+### Remove Learning Item
+
+Removes a learning item by its index.
+
+- **Endpoint**: `/:id/learning/:index`
+- **Method**: `DELETE`
+- **Headers**: `Authorization: Bearer <token>`
+- **Path Parameters**:
+  - `id` (required): Course UUID
+  - `index` (required): Index of the item to remove (0-based)
+- **Response** (200 OK):
+  ```json
+  {
+    "_id": "course-uuid",
+    "learning": [
+      "Understand Components"
+    ],
+    ...
+  }
+  ```
+
+### Update Learning Item
+
+Updates a specific learning item by its index.
+
+- **Endpoint**: `/:id/learning/:index`
+- **Method**: `PUT`
+- **Headers**: `Authorization: Bearer <token>`
+- **Path Parameters**:
+  - `id` (required): Course UUID
+  - `index` (required): Index of the item to update (0-based)
+- **Request Body**:
+  ```json
+  {
+    "learningItem": "Master React Hooks (Updated)"
+  }
+  ```
+- **Response** (200 OK):
+  ```json
+  {
+    "_id": "course-uuid",
+    "learning": [
+      "Master React Hooks (Updated)",
+      ...
+    ],
+    ...
+  }
+  ```
+
+---
+
+## 11. Manage Course Requirements
+
+### Add Requirement
+
+Adds a new requirement/prerequisite to the course.
+
+- **Endpoint**: `/:id/requirements`
+- **Method**: `POST`
+- **Headers**: `Authorization: Bearer <token>`
+- **Path Parameters**:
+  - `id` (required): Course UUID
+- **Request Body**:
+  ```json
+  {
+    "requirementItem": "Basic JavaScript knowledge"
+  }
+  ```
+- **Response** (200 OK):
+  ```json
+  {
+    "_id": "course-uuid",
+    "requirements": [
+      "No prior experience needed",
+      "Basic JavaScript knowledge"
+    ],
+    ...
+  }
+  ```
+
+### Remove Requirement
+
+Removes a requirement by its index.
+
+- **Endpoint**: `/:id/requirements/:index`
+- **Method**: `DELETE`
+- **Headers**: `Authorization: Bearer <token>`
+- **Path Parameters**:
+  - `id` (required): Course UUID
+  - `index` (required): Index of the item to remove (0-based)
+- **Response** (200 OK):
+  ```json
+  {
+    "_id": "course-uuid",
+    "requirements": [
+      "No prior experience needed"
+    ],
+    ...
+  }
+  ```
+
+### Update Requirement
+
+Updates a specific requirement by its index.
+
+- **Endpoint**: `/:id/requirements/:index`
+- **Method**: `PUT`
+- **Headers**: `Authorization: Bearer <token>`
+- **Path Parameters**:
+  - `id` (required): Course UUID
+  - `index` (required): Index of the item to update (0-based)
+- **Request Body**:
+  ```json
+  {
+    "requirementItem": "Intermediate JS needed"
+  }
+  ```
+- **Response** (200 OK):
+  ```json
+  {
+    "_id": "course-uuid",
+    "requirements": [
+      "Intermediate JS needed",
+      ...
+    ],
+    ...
+  }
+  ```
+
+### Common Error Responses
+
+| Status Code | Description                         |
+| ----------- | ----------------------------------- |
+| 400         | Invalid item or index out of bounds |
+| 403         | Unauthorized (Not the instructor)   |
+| 404         | Course not found                    |
+| 500         | Server error                        |
+
+---
+
+## 12. Get Top Courses
+
+Fetches a list of the most popular courses based on enrollment numbers.
+
+- **Endpoint**: `/top`
+- **Method**: `GET`
+- **Query Parameters**:
+  - `limit` (optional): Number of courses to retrieve (default: 10)
+
+**Response Example** (200 OK):
+
+```json
+[
+  {
+    "_id": "course-uuid",
+    "title": "Popular Course",
+    "description": "...",
+    "price": 49.99,
+    "imageUrl": "...",
+    "level": "beginner",
+    "instructor": { ... },
+    "tag": { ... },
+    "rate": 4.8,
+    "reviewCount": 150,
+    "studentsCount": 500
+  },
+  ...
+]
+```

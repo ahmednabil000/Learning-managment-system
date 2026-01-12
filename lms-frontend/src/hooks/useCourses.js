@@ -63,12 +63,91 @@ export const useDeleteCourse = (options = {}) => {
   });
 };
 
-export const useInstructorCourses = () => {
+export const useInstructorCourses = (instructorId, params = {}) => {
   return useQuery({
-    queryKey: ["instructor-courses-all"],
-    queryFn: async () => {
-      const data = await CoursesService.fetchCourses({ pageCount: 100 });
-      return data.shortCourses || [];
+    queryKey: ["instructor-courses", instructorId, params],
+    queryFn: () => CoursesService.fetchInstructorCourses(instructorId, params),
+    enabled: !!instructorId,
+  });
+};
+
+export const useAddLearningItem = (options = {}) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }) => CoursesService.addLearningItem(id, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["course", variables.id] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
     },
+  });
+};
+
+export const useRemoveLearningItem = (options = {}) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, index }) => CoursesService.removeLearningItem(id, index),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["course", variables.id] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
+    },
+  });
+};
+
+export const useUpdateLearningItem = (options = {}) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, index, data }) =>
+      CoursesService.updateLearningItem(id, index, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["course", variables.id] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
+    },
+  });
+};
+
+export const useAddRequirement = (options = {}) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }) => CoursesService.addRequirement(id, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["course", variables.id] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
+    },
+  });
+};
+
+export const useRemoveRequirement = (options = {}) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, index }) => CoursesService.removeRequirement(id, index),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["course", variables.id] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
+    },
+  });
+};
+
+export const useUpdateRequirement = (options = {}) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, index, data }) =>
+      CoursesService.updateRequirement(id, index, data),
+    ...options,
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: ["course", variables.id] });
+      if (options.onSuccess) options.onSuccess(data, variables, context);
+    },
+  });
+};
+
+export const useTopCourses = (limit = 10) => {
+  return useQuery({
+    queryKey: ["top-courses", limit],
+    queryFn: () => CoursesService.fetchTopCourses(limit),
   });
 };

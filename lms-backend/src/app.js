@@ -58,7 +58,7 @@ cron.schedule("*/1 * * * *", () => {
 });
 
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_ATLAS, { dbName: "your_atlas_db_name" })
   .then(() => {
     console.log("Connected to MongoDB");
   })

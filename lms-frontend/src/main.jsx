@@ -43,6 +43,9 @@ import InstructorLiveSessionsPage from "./features/Dashboard/InstructorLiveSessi
 import BlogDetailsPage from "./features/Courses/BlogDetailsPage";
 import CreateCourseBlogPage from "./features/Dashboard/CreateCourseBlogPage";
 import CourseBlogViewPage from "./features/Courses/CourseBlogViewPage";
+import AboutPage from "./features/About/AboutPage";
+import PrivacyPolicyPage from "./features/Legal/PrivacyPolicyPage";
+import TermsOfServicePage from "./features/Legal/TermsOfServicePage";
 
 const router = createBrowserRouter([
   {
@@ -52,6 +55,18 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <HomePage />,
+      },
+      {
+        path: "about",
+        element: <AboutPage />,
+      },
+      {
+        path: "privacy-policy",
+        element: <PrivacyPolicyPage />,
+      },
+      {
+        path: "terms-of-service",
+        element: <TermsOfServicePage />,
       },
       {
         path: "auth/login",

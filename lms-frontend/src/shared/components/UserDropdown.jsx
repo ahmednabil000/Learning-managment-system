@@ -91,20 +91,15 @@ const UserDropdown = () => {
                 <span>Dashboard</span>
               </Link>
             )}
-            <Link
-              to="/profile"
-              onClick={() => setIsOpen(false)}
-              className="block px-4 py-2 text-sm text-text-main hover:bg-background transition-colors"
-            >
-              My Profile
-            </Link>
-            <Link
-              to="/settings"
-              onClick={() => setIsOpen(false)}
-              className="block px-4 py-2 text-sm text-text-main hover:bg-background transition-colors"
-            >
-              Settings
-            </Link>
+            {user.role === "Instructor" && (
+              <Link
+                to={`/instructors/${user.id}`}
+                onClick={() => setIsOpen(false)}
+                className="block px-4 py-2 text-sm text-text-main hover:bg-background transition-colors"
+              >
+                My Profile
+              </Link>
+            )}
           </div>
 
           <div className="border-t border-border mt-1 py-1">

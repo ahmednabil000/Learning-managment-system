@@ -83,6 +83,8 @@ const InstructorDashboard = () => {
       {
         getValue: (datum) => datum.secondary,
         elementType: "bar",
+        hardMin: 0,
+        hardMax: null,
       },
     ],
     []
@@ -211,7 +213,9 @@ const InstructorDashboard = () => {
                   data: chartData,
                   primaryAxis,
                   secondaryAxes,
-                  dark: false,
+                  getSeriesStyle: () => ({
+                    color: "#6366f1", // Indigo 500
+                  }),
                 }}
               />
             ) : (

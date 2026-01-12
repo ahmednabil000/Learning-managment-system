@@ -172,7 +172,11 @@ const InstructorAssignmentsPage = () => {
                       <div>{assignment.title}</div>
                     </td>
                     <td className="p-4 text-sm font-semibold text-text-main">
-                      {assignment.maxScore} pts
+                      {assignment.questions?.reduce(
+                        (sum, q) => sum + (q.points || 0),
+                        0
+                      ) || 0}{" "}
+                      pts
                     </td>
                     <td className="p-4 text-sm text-text-muted">
                       {assignment.questions

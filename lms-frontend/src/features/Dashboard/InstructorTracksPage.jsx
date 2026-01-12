@@ -23,12 +23,13 @@ const InstructorTracksPage = () => {
   const { data, isLoading } = useInstructorTracks(user?._id || user?.id, {
     page,
     limit: pageCount,
+    search,
   });
   const { mutate: deleteTrack, isPending: isDeleting } = useDeleteTrack();
 
   const tracks = data?.tracks || [];
   const totalPages = data?.totalPages || 1;
-
+  console.log(tracks);
   const handleDelete = (id) => {
     setDeleteModal({
       isOpen: true,

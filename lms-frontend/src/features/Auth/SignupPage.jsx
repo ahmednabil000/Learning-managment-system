@@ -1,12 +1,20 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../shared/components/Button";
-import { FaGoogle, FaGithub } from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import InputError from "../../shared/components/InputError";
+import AuthService from "../../services/AuthService";
+import useAuthStore from "../../Stores/authStore";
+import notification from "../../utils/notification";
 
 const SignupPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { setToken } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -17,11 +25,33 @@ const SignupPage = () => {
   const signupWithGoogle = () => {
     window.open(`${import.meta.env.VITE_API_URL}/auth/google`, "_self");
   };
+
   const password = watch("password");
 
-  const onSubmit = (data) => {
-    console.log(data);
-    // TODO: Implement signup logic here
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    try {
+      const response = await AuthService.register({
+        fullName: data.name,
+        email: data.email,
+        password: data.password,
+      });
+      setToken(response.token);
+      notification.success(
+        t("signup.success") ||
+          "Welcome to EduSphere! Your account has been created."
+      );
+      navigate("/");
+    } catch (error) {
+      console.error(error);
+      notification.error(
+        error.response?.data?.message ||
+          t("signup.error") ||
+          "Unable to create account. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -165,8 +195,9 @@ const SignupPage = () => {
               type="submit"
               variant="primary"
               className="w-full justify-center"
+              disabled={isLoading}
             >
-              {t("signup.submit")}
+              {isLoading ? "Signing up..." : t("signup.submit")}
             </Button>
           </div>
         </form>
@@ -184,16 +215,13 @@ const SignupPage = () => {
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="mt-6">
             <Button
               variant="outline"
               className="w-full justify-center"
               onClick={signupWithGoogle}
             >
               <FaGoogle className="mr-2" /> Google
-            </Button>
-            <Button variant="outline" className="w-full justify-center">
-              <FaGithub className="mr-2" /> GitHub
             </Button>
           </div>
         </div>

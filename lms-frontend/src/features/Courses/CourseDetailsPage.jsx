@@ -12,6 +12,7 @@ import {
   FaPlayCircle,
   FaCalendarAlt,
   FaClipboardList,
+  FaCheck,
 } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import Button from "../../shared/components/Button";
@@ -23,6 +24,7 @@ import { useAssignmentsByCourse } from "../../hooks/useAssignments";
 import { useCourseBlogs } from "../../hooks/useCourseBlogs";
 import { useCourseAvailableExam } from "../../hooks/useExams";
 import CourseCommentsSection from "./components/CourseCommentsSection";
+import VideoModal from "../../shared/components/VideoModal";
 
 const CourseDetailsPage = () => {
   const { courseId } = useParams();
@@ -31,7 +33,6 @@ const CourseDetailsPage = () => {
   const { data: course, isLoading, isError } = useCourse(courseId);
   const { data: assignments = [] } = useAssignmentsByCourse(courseId);
   const { data: allBlogs = [] } = useCourseBlogs(courseId, { limit: 1000 });
-
   // Exam Logic
   const { data: examData } = useCourseAvailableExam(courseId);
   const [examState, setExamState] = useState({ status: null, countdown: null });
@@ -74,6 +75,28 @@ const CourseDetailsPage = () => {
       ...prev,
       [lectureId]: !prev[lectureId],
     }));
+  };
+
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState("");
+
+  const handlePreview = () => {
+    const sortedLectures =
+      course.lectures?.sort((a, b) => a.order - b.order) || [];
+    const firstLectureWithLessons = sortedLectures.find(
+      (l) => l.lessons && l.lessons.length > 0
+    );
+
+    if (firstLectureWithLessons) {
+      const sortedLessons = firstLectureWithLessons.lessons.sort(
+        (a, b) => a.order - b.order
+      );
+      setPreviewUrl(sortedLessons[0].videoUrl);
+      setShowPreview(true);
+    } else {
+      // Fallback or notification if no video found
+      console.log("No lessons available for preview");
+    }
   };
 
   const getLectureItems = (lecture) => {
@@ -152,112 +175,122 @@ const CourseDetailsPage = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Hero Section */}
-      <div className="bg-primary text-white relative overflow-hidden">
+      <div className="bg-primary text-white relative overflow-hidden shadow-lg">
         <div className="absolute inset-0 bg-black/20 z-0"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            <div className="lg:col-span-2 space-y-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            <div className="lg:col-span-2 space-y-3">
               <Link
                 to="/courses"
-                className="inline-flex items-center text-white/80 hover:text-white transition-colors mb-4"
+                className="inline-flex items-center text-white/70 hover:text-white transition-colors text-xs font-medium mb-0.5"
               >
                 <FaChevronLeft
                   className={`${
                     isRtl ? "rotate-180" : ""
-                  } mr-2 rtl:ml-2 rtl:mr-0`}
+                  } mr-1 rtl:ml-1 rtl:mr-0`}
                 />
                 Back to Courses
               </Link>
-              <h1 className="heading-xl font-extrabold tracking-tight">
+              <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight">
                 {course.title}
               </h1>
-              <p className="text-lg text-white/90 leading-relaxed max-w-2xl">
+              <p className="text-sm lg:text-base text-white/90 leading-relaxed max-w-2xl">
                 {course.description}
               </p>
 
-              <div className="flex flex-wrap items-center gap-6 mt-8">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs font-medium">
                 <Link
                   to={`/instructors/${course.instructor?._id}`}
-                  className="flex items-center gap-3 hover:bg-white/10 p-2 rounded-lg transition-colors"
+                  className="flex items-center gap-2 hover:bg-white/10 py-1 px-2 -ml-2 rounded-lg transition-colors group"
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/30">
+                  <div className="w-6 h-6 rounded-full overflow-hidden border border-white/30 group-hover:border-white">
                     <img
-                      src={course.instructor?.imageUrl}
+                      src={
+                        course.instructor?.imageUrl ||
+                        "https://placehold.co/40x40"
+                      }
                       alt={course.instructor?.name}
                       className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                   </div>
-                  <div>
-                    <p className="text-sm text-white/60">Instructor</p>
-                    <p className="font-semibold">{course.instructor?.name}</p>
-                  </div>
+                  <span className="text-white/90 group-hover:text-white">
+                    {course.instructor?.name}
+                  </span>
                 </Link>
-                <div className="h-10 w-px bg-white/20 hidden md:block"></div>
-                <div className="flex items-center gap-2">
-                  <FaClock className="text-white/60" />
+
+                <div className="h-3 w-px bg-white/20 hidden md:block"></div>
+
+                <div className="flex items-center gap-1.5 text-white/80">
+                  <FaClock size={12} />
                   <span>{formatDuration(totalDuration).formatted}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <FaBookOpen className="text-white/60" />
+
+                <div className="flex items-center gap-1.5 text-white/80">
+                  <FaBookOpen size={12} />
                   <span>{totalLessons} Lessons</span>
                 </div>
-                <>
-                  <div className="h-10 w-px bg-white/20 hidden md:block"></div>
-                  <div className="flex items-center gap-2">
-                    <FaCalendarAlt className="text-white/60" />
-                    <span>
-                      {new Date(course.startingAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </>
+
+                <div className="h-3 w-px bg-white/20 hidden md:block"></div>
+
+                <div className="flex items-center gap-1.5 text-white/80">
+                  <FaCalendarAlt size={12} />
+                  <span>
+                    {course.createdAt
+                      ? new Date(course.createdAt).toLocaleDateString()
+                      : "N/A"}
+                  </span>
+                </div>
+
                 {course.level && (
                   <>
-                    <div className="h-10 w-px bg-white/20 hidden md:block"></div>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-white/10 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-white/20">
-                        {course.level}
-                      </span>
-                    </div>
+                    <div className="h-3 w-px bg-white/20 hidden md:block"></div>
+                    <span className="bg-white/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-white/10 text-white/90">
+                      {course.level}
+                    </span>
                   </>
                 )}
               </div>
             </div>
 
             {/* Course Card Sticky Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="bg-surface rounded-3xl shadow-2xl overflow-hidden text-text-main border border-border/50 sticky top-24">
+            <div className="lg:col-span-1 flex justify-center lg:justify-end">
+              <div className="bg-surface rounded-xl shadow-xl overflow-hidden text-text-main border border-border/50 sticky top-24 w-full max-w-sm">
                 <div className="aspect-video relative overflow-hidden group">
                   <img
                     src={course.imageUrl}
                     alt={course.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                    <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 text-white cursor-pointer hover:scale-110 transition-transform">
-                      <FaPlayCircle size={32} />
+                  <div
+                    className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center cursor-pointer"
+                    onClick={handlePreview}
+                  >
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 text-white cursor-pointer hover:scale-110 transition-transform">
+                      <FaPlayCircle size={24} />
                     </div>
                   </div>
                 </div>
 
-                <div className="p-8">
-                  <div className="flex flex-col items-start mb-6">
+                <div className="p-5">
+                  <div className="flex flex-col items-start mb-4">
                     {course.isSale ||
                     (course.discount > 0 && course.salePrice) ? (
                       <div className="flex flex-col">
-                        <div className="flex items-center gap-3">
-                          <span className="text-4xl font-bold text-primary">
+                        <div className="flex items-center gap-2">
+                          <span className="text-3xl font-bold text-primary">
                             ${course.salePrice}
                           </span>
-                          <span className="bg-error/10 text-error text-sm font-bold px-2 py-1 rounded border border-error/20">
+                          <span className="bg-error/10 text-error text-xs font-bold px-2 py-0.5 rounded border border-error/20">
                             {course.discount}% OFF
                           </span>
                         </div>
-                        <span className="text-lg text-text-muted line-through mt-1">
+                        <span className="text-sm text-text-muted line-through mt-0.5">
                           ${course.price}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-4xl font-bold text-primary">
+                      <span className="text-3xl font-bold text-primary">
                         ${course.price}
                       </span>
                     )}
@@ -265,13 +298,13 @@ const CourseDetailsPage = () => {
 
                   <Button
                     variant="primary"
-                    className="w-full py-4 text-lg font-bold shadow-lg shadow-primary/20 mb-4"
+                    className="w-full py-3 text-base font-bold shadow-lg shadow-primary/20 mb-3"
                     onClick={handleEnroll}
                   >
                     {course.isEnroll ? t("courses.go_to_course") : "Enroll Now"}
                   </Button>
 
-                  <p className="text-center text-text-muted text-sm italic">
+                  <p className="text-center text-text-muted text-xs italic">
                     {"Last Updated"}:{" "}
                     {new Date(course.updatedAt).toLocaleDateString()}
                   </p>
@@ -345,6 +378,25 @@ const CourseDetailsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Curriculum */}
           <div className="lg:col-span-2">
+            {/* What You Will Learn */}
+            {course.learning && course.learning.length > 0 && (
+              <div className="bg-surface border border-border rounded-3xl p-8 mb-8 shadow-sm">
+                <h2 className="heading-l text-primary mb-6">
+                  What you'll learn
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {course.learning.map((item, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <FaCheck className="text-success mt-1 shrink-0" />
+                      <span className="text-text-main leading-relaxed">
+                        {item}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <h2
               id="curriculum-section"
               className="heading-l text-primary mb-8 flex items-center gap-3"
@@ -353,7 +405,7 @@ const CourseDetailsPage = () => {
               Curriculum
             </h2>
 
-            <div className="space-y-4">
+            <div className="space-y-4 mb-8">
               {course.lectures
                 ?.sort((a, b) => a.order - b.order)
                 .map((lecture) => (
@@ -456,6 +508,23 @@ const CourseDetailsPage = () => {
                   </div>
                 ))}
             </div>
+
+            {/* Requirements */}
+            {course.requirements && course.requirements.length > 0 && (
+              <div className="bg-surface border border-border rounded-3xl p-8 mb-8 shadow-sm">
+                <h2 className="heading-l text-primary mb-6">Requirements</h2>
+                <ul className="space-y-3">
+                  {course.requirements.map((item, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-text-muted mt-2 shrink-0"></div>
+                      <span className="text-text-main leading-relaxed">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Right Column / About Instructor / Other info */}
@@ -469,9 +538,13 @@ const CourseDetailsPage = () => {
                 >
                   <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-primary/10 group-hover:border-primary transition-colors">
                     <img
-                      src={course.instructor?.imageUrl}
+                      src={
+                        course.instructor?.imageUrl ||
+                        "https://placehold.co/150x150"
+                      }
                       alt={course.instructor?.name}
                       className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                   </div>
                   <h4 className="text-xl font-bold text-text-main mb-1 group-hover:text-primary transition-colors">
@@ -531,6 +604,13 @@ const CourseDetailsPage = () => {
 
         {/* Course Comments Section */}
         <CourseCommentsSection courseId={courseId} />
+
+        {/* Video Preview Modal */}
+        <VideoModal
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          videoUrl={previewUrl}
+        />
       </div>
     </div>
   );

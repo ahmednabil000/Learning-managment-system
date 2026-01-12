@@ -32,6 +32,7 @@ const CoursesPage = () => {
 
   const courses = data?.shortCourses || [];
   const totalPages = data?.totalPages || 1;
+  console.log(courses);
 
   return (
     <div className="py-12 bg-background min-h-screen">

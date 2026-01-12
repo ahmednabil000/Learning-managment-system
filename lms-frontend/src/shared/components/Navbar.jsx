@@ -8,18 +8,12 @@ import UserDropdown from "./UserDropdown";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const { isAuthenticated, user, clearToken } = useAuthStore();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  const toggleLanguage = () => {
-    const newLang = i18n.language === "en" ? "ar" : "en";
-    i18n.changeLanguage(newLang);
-    document.dir = newLang === "ar" ? "rtl" : "ltr";
-  };
 
   const handleLogout = () => {
     clearToken();
@@ -76,10 +70,6 @@ const Navbar = () => {
 
           {/* Auth Buttons & Lang Switcher */}
           <div className="hidden md:flex items-center space-x-4 rtl:space-x-reverse">
-            <Button variant="ghost" size="sm" onClick={toggleLanguage}>
-              {i18n.language === "en" ? "العربية" : "English"}
-            </Button>
-
             {isAuthenticated ? (
               <UserDropdown />
             ) : (
@@ -100,9 +90,6 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-4 rtl:space-x-reverse">
-            <Button variant="ghost" size="sm" onClick={toggleLanguage}>
-              {i18n.language === "en" ? "AR" : "EN"}
-            </Button>
             <button
               onClick={toggleMenu}
               className="text-text-main hover:text-primary p-2 rounded-md focus:outline-none"
@@ -143,6 +130,15 @@ const Navbar = () => {
             >
               {t("navbar.tracks")}
             </Link>
+            {isAuthenticated && user?.role === "Instructor" && (
+              <Link
+                to="/dashboard"
+                className="block px-3 py-2 rounded-md text-base font-medium text-text-main hover:text-primary hover:bg-background"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
             <Link
               to="/about"
               className="block px-3 py-2 rounded-md text-base font-medium text-text-main hover:text-primary hover:bg-background"

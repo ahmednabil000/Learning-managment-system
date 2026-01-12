@@ -12,6 +12,11 @@ const InstructorService = {
     });
     return response.data;
   },
+
+  updateInstructor: async (data) => {
+    const response = await api.put("/instructors/", data);
+    return response.data;
+  },
 };
 
 export default InstructorService;

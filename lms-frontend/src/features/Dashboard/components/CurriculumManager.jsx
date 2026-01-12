@@ -158,6 +158,7 @@ const CurriculumManager = ({ courseId }) => {
   );
 
   const { mutate: deleteLesson, isPending: isDeletingLesson } = useDeleteLesson(
+    null,
     {
       onSuccess: () => {
         notification.success("Lesson deleted successfully!");

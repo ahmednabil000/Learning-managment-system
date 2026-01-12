@@ -6,7 +6,10 @@ const CourseComment = require("../models/courses/courseComment");
 exports.getCourseById = async (id, userId = null) => {
   const course = await Course.findOne({ _id: id })
     .populate("tag")
-    .populate("instructor")
+    .populate({
+      path: "instructor",
+      select: "-email -googleId -password -enrolledCourses",
+    })
     .lean();
 
   if (!course) {
@@ -68,10 +71,10 @@ exports.getCourseById = async (id, userId = null) => {
     ratings.length > 0 ? parseFloat(ratings[0].avgRate.toFixed(1)) : 0;
   course.reviewCount = ratings.length > 0 ? ratings[0].count : 0;
 
-  course.studentsCount = await UserEnroll.countDocuments({
+  course.enrollmentCount = await UserEnroll.countDocuments({
     course: course._id,
   });
-
+  console.log(course);
   return course;
 };
 
@@ -277,6 +280,7 @@ module.exports.removeCourseDiscount = async (userId, courseId) => {
 };
 
 module.exports.getInstructorCourses = async (userId, page, limit) => {
+  console.log("rec");
   const courses = await Course.find({ instructor: userId })
     .populate("tag")
     .skip((page - 1) * limit)
@@ -338,4 +342,158 @@ module.exports.getMyEnrolledCourses = async (userId, offset, limit) => {
   });
 
   return { courses: userEnrolls, totalItems, totalPages };
+};
+
+module.exports.addLearning = async (userId, courseId, learningItem) => {
+  const course = await Course.findById(courseId);
+  if (!course) return { statusCode: 404, message: "Course not found" };
+  if (course.instructor.toString() !== userId) {
+    return { statusCode: 403, message: "Unauthorized" };
+  }
+  course.learning.push(learningItem);
+  await course.save();
+  return course;
+};
+
+module.exports.removeLearning = async (userId, courseId, learningIndex) => {
+  const course = await Course.findById(courseId);
+  if (!course) return { statusCode: 404, message: "Course not found" };
+  if (course.instructor.toString() !== userId) {
+    return { statusCode: 403, message: "Unauthorized" };
+  }
+  if (learningIndex < 0 || learningIndex >= course.learning.length) {
+    return { statusCode: 400, message: "Invalid index" };
+  }
+  course.learning.splice(learningIndex, 1);
+  await course.save();
+  return course;
+};
+
+module.exports.updateLearning = async (
+  userId,
+  courseId,
+  learningIndex,
+  newItem
+) => {
+  const course = await Course.findById(courseId);
+  if (!course) return { statusCode: 404, message: "Course not found" };
+  if (course.instructor.toString() !== userId) {
+    return { statusCode: 403, message: "Unauthorized" };
+  }
+  if (learningIndex < 0 || learningIndex >= course.learning.length) {
+    return { statusCode: 400, message: "Invalid index" };
+  }
+  course.learning[learningIndex] = newItem;
+  await course.save();
+  return course;
+};
+
+module.exports.addRequirement = async (userId, courseId, requirementItem) => {
+  const course = await Course.findById(courseId);
+  if (!course) return { statusCode: 404, message: "Course not found" };
+  if (course.instructor.toString() !== userId) {
+    return { statusCode: 403, message: "Unauthorized" };
+  }
+  course.requirements.push(requirementItem);
+  await course.save();
+  return course;
+};
+
+module.exports.removeRequirement = async (
+  userId,
+  courseId,
+  requirementIndex
+) => {
+  const course = await Course.findById(courseId);
+  if (!course) return { statusCode: 404, message: "Course not found" };
+  if (course.instructor.toString() !== userId) {
+    return { statusCode: 403, message: "Unauthorized" };
+  }
+  if (requirementIndex < 0 || requirementIndex >= course.requirements.length) {
+    return { statusCode: 400, message: "Invalid index" };
+  }
+  course.requirements.splice(requirementIndex, 1);
+  await course.save();
+  return course;
+};
+
+module.exports.updateRequirement = async (
+  userId,
+  courseId,
+  requirementIndex,
+  newItem
+) => {
+  const course = await Course.findById(courseId);
+  if (!course) return { statusCode: 404, message: "Course not found" };
+  if (course.instructor.toString() !== userId) {
+    return { statusCode: 403, message: "Unauthorized" };
+  }
+  if (requirementIndex < 0 || requirementIndex >= course.requirements.length) {
+    return { statusCode: 400, message: "Invalid index" };
+  }
+  course.requirements[requirementIndex] = newItem;
+  await course.save();
+  return course;
+};
+
+module.exports.getTopCourses = async (count) => {
+  // 1. Get top courses by enrollment count
+  const distinctCourses = await UserEnroll.aggregate([
+    {
+      $group: {
+        _id: "$course",
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { count: -1 } },
+    { $limit: count },
+  ]);
+
+  if (distinctCourses.length === 0) {
+    return [];
+  }
+
+  const courseIds = distinctCourses.map((dc) => dc._id);
+
+  // 2. Fetch course details
+  const courses = await Course.find({ _id: { $in: courseIds } })
+    .populate({
+      path: "instructor",
+      select: "-email -googleId -password -enrolledCourses",
+    })
+    .populate("tag")
+    .lean();
+
+  // 3. Aggregate ratings for these courses
+  const ratings = await CourseComment.aggregate([
+    { $match: { course: { $in: courseIds } } },
+    {
+      $group: {
+        _id: "$course",
+        avgRate: { $avg: "$rate" },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // 4. Merge data and preserve order from aggregation
+  const orderedCourses = distinctCourses
+    .map((dc) => {
+      const course = courses.find(
+        (c) => c._id.toString() === dc._id.toString()
+      );
+      if (!course) return null;
+
+      const rating = ratings.find(
+        (r) => r._id.toString() === course._id.toString()
+      );
+      course.rate = rating ? parseFloat(rating.avgRate.toFixed(1)) : 0;
+      course.reviewCount = rating ? rating.count : 0;
+      course.studentsCount = dc.count; // Use the count from aggregation
+
+      return course;
+    })
+    .filter((c) => c !== null); // Remove any nulls if course not found
+
+  return orderedCourses;
 };

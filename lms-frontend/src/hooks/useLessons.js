@@ -70,6 +70,8 @@ export const useDeleteLesson = (lectureId, options = {}) => {
       if (lectureId) {
         queryClient.invalidateQueries({ queryKey: ["lessons", lectureId] });
         queryClient.invalidateQueries({ queryKey: ["lecture", lectureId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["lessons"] });
       }
       if (options.onSuccess) options.onSuccess(data, variables, context);
     },

@@ -167,6 +167,16 @@ exports.removeCourseFromTrack = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+exports.getTopTracks = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const tracks = await trackService.getTopTracks(limit);
+    res.json(tracks);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.getInstructorTracks = async (req, res) => {
   try {
     logger.info("Getting instructor tracks");

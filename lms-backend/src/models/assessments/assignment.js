@@ -9,7 +9,6 @@ const assignmentSchema = new mongoose.Schema(
     },
     title: String,
     lecture: { type: String, ref: "Lecture" },
-    totalPoints: Number,
   },
   { timestamps: true }
 );

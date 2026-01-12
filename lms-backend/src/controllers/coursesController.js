@@ -43,6 +43,7 @@ exports.getCourses = async (req, res) => {
       discount: course.discount,
       isEnroll: course.isEnroll || false,
       rate: course.rate || 0,
+      instructor: course.instructor,
       reviewCount: course.reviewCount || 0,
       studentsCount: course.studentsCount || 0,
     }));
@@ -226,6 +227,123 @@ exports.getMyEnrolledCourses = async (req, res) => {
     });
   } catch (error) {
     logger.error("Error fetching enrolled courses:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+exports.getTopCourses = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const courses = await courseService.getTopCourses(limit);
+    res.json(courses);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.addLearning = async (req, res) => {
+  try {
+    const { learningItem } = req.body;
+    if (!learningItem)
+      return res.status(400).json({ message: "Item required" });
+    const result = await courseService.addLearning(
+      req.user.id,
+      req.params.id,
+      learningItem
+    );
+    if (result.statusCode)
+      return res.status(result.statusCode).json({ message: result.message });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.removeLearning = async (req, res) => {
+  try {
+    const { index } = req.params;
+    const result = await courseService.removeLearning(
+      req.user.id,
+      req.params.id,
+      parseInt(index)
+    );
+    if (result.statusCode)
+      return res.status(result.statusCode).json({ message: result.message });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateLearning = async (req, res) => {
+  try {
+    const { index } = req.params;
+    const { learningItem } = req.body;
+    if (!learningItem)
+      return res.status(400).json({ message: "Item required" });
+    const result = await courseService.updateLearning(
+      req.user.id,
+      req.params.id,
+      parseInt(index),
+      learningItem
+    );
+    if (result.statusCode)
+      return res.status(result.statusCode).json({ message: result.message });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.addRequirement = async (req, res) => {
+  try {
+    const { requirementItem } = req.body;
+    if (!requirementItem)
+      return res.status(400).json({ message: "Item required" });
+    const result = await courseService.addRequirement(
+      req.user.id,
+      req.params.id,
+      requirementItem
+    );
+    if (result.statusCode)
+      return res.status(result.statusCode).json({ message: result.message });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.removeRequirement = async (req, res) => {
+  try {
+    const { index } = req.params;
+    const result = await courseService.removeRequirement(
+      req.user.id,
+      req.params.id,
+      parseInt(index)
+    );
+    if (result.statusCode)
+      return res.status(result.statusCode).json({ message: result.message });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateRequirement = async (req, res) => {
+  try {
+    const { index } = req.params;
+    const { requirementItem } = req.body;
+    if (!requirementItem)
+      return res.status(400).json({ message: "Item required" });
+    const result = await courseService.updateRequirement(
+      req.user.id,
+      req.params.id,
+      parseInt(index),
+      requirementItem
+    );
+    if (result.statusCode)
+      return res.status(result.statusCode).json({ message: result.message });
+    res.json(result);
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };

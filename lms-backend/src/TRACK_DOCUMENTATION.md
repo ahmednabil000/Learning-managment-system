@@ -385,3 +385,32 @@ Retrieves a paginated list of tracks created by a specific instructor.
   "hasNextPage": false
 }
 ```
+
+---
+
+## 11. Get Top Tracks
+
+Retrieves a list of the most recent/top tracks (currently sorted by creation date).
+
+**Endpoint:** `GET /api/tracks/top`
+
+**Query Parameters:**
+
+- `limit` (number, optional): Number of tracks to retrieve (default: 10).
+
+**Response:**
+
+```json
+[
+  {
+    "_id": "track-uuid",
+    "title": "Top Track",
+    "description": "...",
+    "discount": 10,
+    "thumbnail": "url",
+    "courses": [ ... ],
+    "active": true
+  },
+  ...
+]
+```

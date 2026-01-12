@@ -26,7 +26,6 @@ _Note: The actual base URL might depend on app configuration._
       "title": "Assignment 1",
       "lecture": "60d5ecb8b5c9c62b3c8b4560",
       "questions": [],
-      "totalPoints": 100,
       "createdAt": "2021-06-25T10:00:00.000Z",
       "updatedAt": "2021-06-25T10:00:00.000Z"
     }
@@ -59,7 +58,6 @@ _Note: The actual base URL might depend on app configuration._
   "title": "Assignment 1",
   "lecture": "60d5ecb8b5c9c62b3c8b4560",
   "questions": [],
-  "totalPoints": 100,
   "createdAt": "2021-06-25T10:00:00.000Z",
   "updatedAt": "2021-06-25T10:00:00.000Z"
 }
@@ -104,7 +102,6 @@ _Note: The actual base URL might depend on app configuration._
 | `title` | String | Yes | Min 3, Max 100 chars | Title of the assignment |
 | `lecture` | String | Yes | - | Lecture ID |
 | `questions` | Array<String> | No | - | Array of Question IDs |
-| `totalPoints` | Number | Yes | Min 0 | Total points for the assignment |
 
 **Example Request:**
 
@@ -112,7 +109,8 @@ _Note: The actual base URL might depend on app configuration._
 {
   "title": "Math Assignment 1",
   "lecture": "60d5ecb8b5c9c62b3c8b4560",
-  "totalPoints": 50
+  "questions": [],
+  "createdAt": "2021-06-25T10:00:00.000Z"
 }
 ```
 

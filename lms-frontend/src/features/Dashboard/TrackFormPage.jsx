@@ -129,7 +129,11 @@ const TrackFormPage = ({ mode = "create" }) => {
     useRemoveCourseFromTrack();
 
   // Instructor Courses for selection
-  const { data: validCourses } = useInstructorCourses();
+  const { data: instructorCoursesData } = useInstructorCourses(
+    user?._id || user?.id,
+    { limit: 100 }
+  );
+  const validCourses = instructorCoursesData?.courses || [];
 
   const {
     register,

@@ -22,12 +22,15 @@ module.exports.createAssignment = async (req, res) => {
 module.exports.getAssignmentById = async (req, res) => {
   try {
     logger.info(`Start fetching assignment ${req.params.id}`);
-    const assignment = await assignmentService.getAssignmentById(req.params.id);
-    if (!assignment) {
-      return res.status(404).json({ message: "Assignment not found" });
+    const result = await assignmentService.getAssignmentById(
+      req.user.id,
+      req.params.id
+    );
+    if (result.statusCode) {
+      return res.status(result.statusCode).json({ message: result.message });
     }
     logger.info(`End fetching assignment ${req.params.id}`);
-    return res.status(200).json(assignment);
+    return res.status(200).json(result);
   } catch (error) {
     logger.error(`Error fetching assignment ${req.params.id}`, error);
     return res.status(500).json({ message: error.message });

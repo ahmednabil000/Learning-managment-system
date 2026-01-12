@@ -2,12 +2,23 @@ import { create } from "zustand";
 import getTokenData from "../utils/getTokenData";
 
 const useAuthStore = create((set) => ({
-  token: localStorage.getItem("authToken") || null,
-  isAuthenticated: localStorage.getItem("authToken") ? true : false,
+  token:
+    localStorage.getItem("authToken") ||
+    sessionStorage.getItem("authToken") ||
+    null,
+  isAuthenticated: !!(
+    localStorage.getItem("authToken") || sessionStorage.getItem("authToken")
+  ),
   user: getTokenData(),
 
-  setToken: (token) => {
-    localStorage.setItem("authToken", token);
+  setToken: (token, remember = true) => {
+    if (remember) {
+      localStorage.setItem("authToken", token);
+      sessionStorage.removeItem("authToken");
+    } else {
+      sessionStorage.setItem("authToken", token);
+      localStorage.removeItem("authToken");
+    }
     set({
       token,
       isAuthenticated: true,
@@ -17,6 +28,7 @@ const useAuthStore = create((set) => ({
 
   clearToken: () => {
     localStorage.removeItem("authToken");
+    sessionStorage.removeItem("authToken");
     set({
       token: null,
       isAuthenticated: false,

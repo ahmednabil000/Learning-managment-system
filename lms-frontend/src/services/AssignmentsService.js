@@ -4,7 +4,9 @@ const AssignmentsService = {
   // --- Assignment Services ---
 
   createAssignment: async (data) => {
-    const response = await api.post("/assignments", data);
+    // Exclude totalPoints if present
+    const { totalPoints: _totalPoints, ...rest } = data;
+    const response = await api.post("/assignments", rest);
     return response.data;
   },
 
@@ -14,7 +16,9 @@ const AssignmentsService = {
   },
 
   updateAssignment: async (id, data) => {
-    const response = await api.put(`/assignments/${id}`, data);
+    // Exclude totalPoints if present
+    const { totalPoints: _totalPoints, ...rest } = data;
+    const response = await api.put(`/assignments/${id}`, rest);
     return response.data;
   },
 
@@ -53,7 +57,22 @@ const AssignmentsService = {
   },
 
   updateQuestion: async (id, data) => {
-    const response = await api.put(`/questions/${id}`, data);
+    const allowedFields = [
+      "title",
+      "assignment",
+      "exam",
+      "type",
+      "options",
+      "correctAnswer",
+      "points",
+    ];
+    const payload = {};
+    allowedFields.forEach((field) => {
+      if (data[field] !== undefined) {
+        payload[field] = data[field];
+      }
+    });
+    const response = await api.put(`/questions/${id}`, payload);
     return response.data;
   },
 

@@ -7,7 +7,12 @@ import { useState } from "react";
 
 const StudentAssignmentPage = () => {
   const { courseId, assignmentId } = useParams();
-  const { data: assignment, isLoading, isError } = useAssignment(assignmentId);
+  const {
+    data: assignment,
+    isLoading,
+    isError,
+    error,
+  } = useAssignment(assignmentId);
   const [answers, setAnswers] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -21,7 +26,34 @@ const StudentAssignmentPage = () => {
     );
   }
 
-  if (isError || !assignment) {
+  if (isError) {
+    let errorMessage = "An error occurred while fetching the assignment";
+    let errorTitle = "Error";
+
+    if (error?.response?.status === 403) {
+      errorTitle = "Access Denied";
+      errorMessage =
+        "You do not have permission to view this assignment. Please ensure you are enrolled in the course.";
+    } else if (error?.response?.status === 404) {
+      errorTitle = "Assignment Not Found";
+      errorMessage = "This assignment does not exist or has been removed.";
+    }
+
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <FaExclamationCircle className="text-error text-4xl mb-4" />
+        <h2 className="heading-l text-error mb-2">{errorTitle}</h2>
+        <p className="text-text-muted mb-6 text-center max-w-md">
+          {errorMessage}
+        </p>
+        <Link to={`/courses/${courseId}`}>
+          <Button variant="primary">Back to Course</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  if (!assignment) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <FaExclamationCircle className="text-error text-4xl mb-4" />
@@ -97,7 +129,10 @@ const StudentAssignmentPage = () => {
               <span className="font-bold block text-text-main mb-1">
                 Total Points
               </span>
-              {assignment.totalPoints}
+              {assignment.questions?.reduce(
+                (sum, q) => sum + (q.points || 0),
+                0
+              ) || 0}
             </div>
             {isSubmitted && (
               <div className="animate-in fade-in zoom-in duration-500">
@@ -106,12 +141,20 @@ const StudentAssignmentPage = () => {
                 </span>
                 <span
                   className={`text-xl font-bold ${
-                    score === assignment.totalPoints
+                    score ===
+                    (assignment.questions?.reduce(
+                      (sum, q) => sum + (q.points || 0),
+                      0
+                    ) || 0)
                       ? "text-success"
                       : "text-primary"
                   }`}
                 >
-                  {score} / {assignment.totalPoints}
+                  {score} /{" "}
+                  {assignment.questions?.reduce(
+                    (sum, q) => sum + (q.points || 0),
+                    0
+                  ) || 0}
                 </span>
               </div>
             )}

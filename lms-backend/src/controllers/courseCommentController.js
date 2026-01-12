@@ -15,7 +15,7 @@ module.exports.createCourseComment = async (req, res) => {
       req.user.id,
       req.body
     );
-    res.status(201).json(comment);
+    res.status(comment.statusCode).json({ message: comment.message });
   } catch (error) {
     logger.error("Error creating course comment:", error);
     res.status(500).json({ error: "Failed to create course comment" });
@@ -37,7 +37,7 @@ module.exports.updateCourseComment = async (req, res) => {
     );
 
     if (result.statusCode) {
-      return res.status(result.statusCode).json({ error: result.message });
+      return res.status(result.statusCode).json({ message: result.message });
     }
     res.json(result);
   } catch (error) {

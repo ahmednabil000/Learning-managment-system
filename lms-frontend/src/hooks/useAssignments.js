@@ -39,6 +39,8 @@ export const useAssignment = (assignmentId) => {
     queryKey: ["assignment", assignmentId],
     queryFn: () => AssignmentsService.getAssignmentById(assignmentId),
     enabled: !!assignmentId,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 };
 

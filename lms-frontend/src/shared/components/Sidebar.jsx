@@ -26,28 +26,9 @@ const Sidebar = () => {
       end: false,
     },
     {
-      name: "Students",
-      path: "/dashboard/students",
-      icon: HiOutlineUsers,
-      end: false,
-    },
-    {
-      name: "Analytics",
-      path: "/dashboard/analytics",
-      icon: HiOutlineChartBar,
-      end: false,
-    },
-    {
       name: "Live Sessions",
       path: "/dashboard/live-sessions",
       icon: HiOutlineAcademicCap,
-      end: false,
-    },
-
-    {
-      name: "Settings",
-      path: "/dashboard/settings",
-      icon: HiOutlineCog,
       end: false,
     },
   ];

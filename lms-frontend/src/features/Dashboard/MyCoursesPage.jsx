@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useCourses, useDeleteCourse } from "../../hooks/useCourses";
+import { useInstructorCourses, useDeleteCourse } from "../../hooks/useCourses";
 import {
   FaPlus,
   FaEdit,
@@ -15,8 +15,10 @@ import notification from "../../utils/notification";
 import CoursesService from "../../services/CoursesService";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
+import useAuthStore from "../../Stores/authStore";
 
 const DiscountModal = ({ isOpen, onClose, course, onSave, onRemove }) => {
+  // ... (Logic for DiscountModal remains unchanged, I will use StartLine to target imports and component start)
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
       discount: 0,
@@ -158,10 +160,14 @@ const MyCoursesPage = () => {
     course: null,
   });
 
-  const { data, isLoading } = useCourses({ page, pageCount, search });
+  const { user } = useAuthStore();
+  const { data, isLoading } = useInstructorCourses(user?.id, {
+    page,
+    limit: pageCount,
+  });
   const { mutate: deleteCourse, isPending: isDeleting } = useDeleteCourse();
 
-  const courses = data?.shortCourses || [];
+  const courses = data?.courses || [];
   const totalPages = data?.totalPages || 1;
 
   const handleDelete = (id) => {

@@ -1,8 +1,12 @@
 const express = require("express");
 const passport = require("passport");
 const generateToken = require("../utils/generateToken");
+const authController = require("../controllers/authController");
 
 const router = express.Router();
+
+router.post("/register", authController.register);
+router.post("/login", authController.login);
 
 // Redirect to Google
 router.get("/google", (req, res, next) => {

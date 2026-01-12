@@ -78,3 +78,34 @@ Retrieves a paginated list of courses created by a specific instructor.
     }
     ```
   - `500 Internal Server Error`: Server error.
+
+---
+
+## 3. Update Instructor
+
+Updates the profile details of the authenticated instructor.
+
+- **Endpoint**: `PUT /instructors/`
+- **Auth Required**: Yes (Must be logged in)
+- **Request Body**:
+  ```json
+  {
+    "firstName": "John",
+    "lastName": "Doe",
+    "description": "Updated description..."
+  }
+  ```
+- **Response**:
+  - `200 OK`: Returns the updated instructor object.
+    ```json
+    {
+      "_id": "instructor_uuid",
+      "firstName": "John",
+      "lastName": "Doe",
+      "description": "Updated description...",
+      ...
+    }
+    ```
+  - `401 Unauthorized`: User is not logged in.
+  - `404 Not Found`: Instructor not found.
+  - `500 Internal Server Error`: Server error.

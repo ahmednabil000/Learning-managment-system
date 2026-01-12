@@ -14,7 +14,6 @@ const AssignmentForm = ({
   } = useForm({
     defaultValues: {
       title: "",
-      totalPoints: 100,
       ...initialData,
       ...initialData,
     },
@@ -43,20 +42,6 @@ const AssignmentForm = ({
         {errors.title && (
           <p className="text-error text-xs mt-1">{errors.title.message}</p>
         )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-bold text-text-main mb-1">
-          Total Points
-        </label>
-        <input
-          type="number"
-          {...register("totalPoints", {
-            required: "Total points is required",
-            min: 0,
-          })}
-          className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50"
-        />
       </div>
 
       <div className="flex justify-end gap-2 pt-2">

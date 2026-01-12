@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import InstructorService from "../services/InstructorService";
 
 export const useInstructor = (id) => {
@@ -20,5 +20,15 @@ export const useInstructorCoursesPublic = (
       InstructorService.getInstructorCoursesPublic(instructorId, page, limit),
     enabled: !!instructorId,
     keepPreviousData: true,
+  });
+};
+
+export const useUpdateInstructor = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: InstructorService.updateInstructor,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["instructor", data._id] });
+    },
   });
 };

@@ -1,5 +1,7 @@
 const Question = require("../../models/assessments/question");
-
+const UserEnroll = require("../../models/UserEnroll");
+const Lecture = require("../../models/courses/Lecture");
+const Course = require("../../models/courses/course");
 exports.getQuestions = async (page, pageCount, search) => {
   return await Question.find({ title: { $regex: search } })
     .limit(pageCount)
@@ -7,8 +9,28 @@ exports.getQuestions = async (page, pageCount, search) => {
     .sort({ createdAt: -1 });
 };
 
-exports.getQuestionById = async (id) => {
-  return await Question.findOne({ _id: id });
+exports.getQuestionById = async (userId, id) => {
+  const question = await Question.findOne({ _id: id }).populate("assignment");
+  const lecture = await Lecture.findOne({ _id: question.assignment.lecture });
+  const course = await Course.findOne({ _id: lecture.course });
+  const userEnroll = await UserEnroll.findOne({
+    course: course._id,
+    user: userId,
+  });
+  if (!userEnroll) {
+    return {
+      statusCode: 403,
+      message: "You are not authorized to access this question",
+    };
+  }
+  if (!question) {
+    return {
+      statusCode: 404,
+      message: "Question not found",
+    };
+  }
+
+  return { question, lecture, course };
 };
 
 exports.createQuestion = async ({
@@ -32,6 +54,7 @@ exports.createQuestion = async ({
 };
 
 exports.updateQuestionById = async (id, updateData) => {
+  console.log("testing");
   return await Question.findOneAndUpdate({ _id: id }, updateData, {
     new: true,
   });

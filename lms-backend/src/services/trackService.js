@@ -76,7 +76,7 @@ module.exports.getAllTracks = async (offset, limit, search = "") => {
         }
       : { isActive: true }
   );
-
+  console.log(tracks);
   const totalPages = Math.ceil(totalItems / limit);
   return { tracks, totalItems, totalPages };
 };
@@ -210,6 +210,19 @@ module.exports.removeCourseFromTrack = async (userId, trackId, courseId) => {
 };
 
 module.exports.getInstructorTracks = async (userId, offset, limit) => {
-  const tracks = await Track.find({ user: userId }).skip(offset).limit(limit);
+  const tracks = await Track.find({ user: userId })
+    .populate("courses")
+    .skip(offset)
+    .limit(limit);
+  const totalItems = await Track.countDocuments({ user: userId });
+  const totalPages = Math.ceil(totalItems / limit);
+  return { tracks, totalItems, totalPages };
+};
+
+module.exports.getTopTracks = async (count = 10) => {
+  const tracks = await Track.find({ isActive: true })
+    .populate("courses")
+    .sort({ createdAt: -1 })
+    .limit(count);
   return tracks;
 };

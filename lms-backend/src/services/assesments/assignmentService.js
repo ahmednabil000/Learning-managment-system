@@ -1,14 +1,28 @@
 const Assignment = require("../../models/assessments/assignment");
 const Lecture = require("../../models/courses/Lecture");
 const Question = require("../../models/assessments/question");
+const UserEnroll = require("../../models/UserEnroll");
+const Course = require("../../models/courses/course");
 
 module.exports.createAssignment = async (assignmentData) => {
   return await Assignment.create(assignmentData);
 };
 
-module.exports.getAssignmentById = async (id) => {
+module.exports.getAssignmentById = async (userId, id) => {
   const assignment = await Assignment.findOne({ _id: id }).lean();
-  if (!assignment) return null;
+  const lecture = await Lecture.findOne({ _id: assignment.lecture });
+  const course = await Course.findOne({ _id: lecture.course });
+  const userEnroll = await UserEnroll.findOne({
+    course: course._id,
+    user: userId,
+  });
+  if (!userEnroll) {
+    return {
+      statusCode: 403,
+      message: "You are not authorized to access this assignment",
+    };
+  }
+  if (!assignment) return { statusCode: 404, message: "Assignment not found" };
   const questions = await Question.find({ assignment: id });
   assignment.questions = questions;
   return assignment;

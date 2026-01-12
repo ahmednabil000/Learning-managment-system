@@ -18,6 +18,7 @@ import {
 import { useTags } from "../../hooks/useTags";
 import CloudinaryService from "../../services/CloudinaryService";
 import CurriculumManager from "./components/CurriculumManager";
+import CourseRequirementsManager from "./components/CourseRequirementsManager";
 import notification from "../../utils/notification";
 
 const CourseFormPage = ({ mode = "create" }) => {
@@ -178,6 +179,20 @@ const CourseFormPage = ({ mode = "create" }) => {
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div>
           )}
         </button>
+        <button
+          className={`pb-4 px-2 font-bold transition-colors relative ${
+            activeTab === "requirements"
+              ? "text-primary"
+              : "text-text-muted hover:text-text-main"
+          }`}
+          disabled={mode === "create"}
+          onClick={() => setActiveTab("requirements")}
+        >
+          Requirements & Learning
+          {activeTab === "requirements" && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div>
+          )}
+        </button>
       </div>
 
       {activeTab === "general" ? (
@@ -212,7 +227,7 @@ const CourseFormPage = ({ mode = "create" }) => {
                   {...register("description", {
                     required: "Description is required",
                     minLength: 10,
-                    maxLength: 300,
+                    maxLength: 700,
                   })}
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all min-h-[150px]"
                   placeholder="Tell students what they will learn..."
@@ -351,6 +366,14 @@ const CourseFormPage = ({ mode = "create" }) => {
               </p>
             </div>
           </div>
+        </div>
+      ) : activeTab === "requirements" ? (
+        <div className="mt-6">
+          <CourseRequirementsManager
+            courseId={id}
+            learning={course?.learning || []}
+            requirements={course?.requirements || []}
+          />
         </div>
       ) : (
         <div className="mt-6">

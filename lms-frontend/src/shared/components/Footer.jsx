@@ -51,7 +51,7 @@ const Footer = () => {
           {/* Quick Links */}
           <div>
             <h3 className="heading-s font-semibold text-text-main mb-4">
-              {t("footer.platform")}
+              {"platform"}
             </h3>
             <ul className="space-y-3">
               <li>
@@ -59,7 +59,7 @@ const Footer = () => {
                   to="/courses"
                   className="body-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  {t("navbar.courses")}
+                  {"courses"}
                 </Link>
               </li>
               <li>
@@ -67,7 +67,7 @@ const Footer = () => {
                   to="/tracks"
                   className="body-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  {t("navbar.tracks")}
+                  {"tracks"}
                 </Link>
               </li>
               <li>
@@ -83,7 +83,7 @@ const Footer = () => {
                   to="/pricing"
                   className="body-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  {t("navbar.pricing")}
+                  {t("pricing")}
                 </Link>
               </li>
             </ul>
@@ -100,7 +100,7 @@ const Footer = () => {
                   to="/blog"
                   className="body-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  {t("navbar.blog")}
+                  {t("blog")}
                 </Link>
               </li>
               <li>
@@ -108,7 +108,7 @@ const Footer = () => {
                   to="/careers"
                   className="body-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  {t("navbar.careers")}
+                  {t("careers")}
                 </Link>
               </li>
               <li>
@@ -116,7 +116,7 @@ const Footer = () => {
                   to="/faq"
                   className="body-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  {t("navbar.faq")}
+                  {t("faq")}
                 </Link>
               </li>
               <li>
@@ -124,7 +124,7 @@ const Footer = () => {
                   to="/contact"
                   className="body-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  {t("navbar.contact")}
+                  {t("contact")}
                 </Link>
               </li>
             </ul>
@@ -160,13 +160,13 @@ const Footer = () => {
           </p>
           <div className="flex space-x-6 rtl:space-x-reverse mt-4 md:mt-0">
             <Link
-              to="/privacy"
+              to="/privacy-policy"
               className="body-sm text-text-muted hover:text-primary transition-colors"
             >
               {t("footer.privacy_policy")}
             </Link>
             <Link
-              to="/terms"
+              to="/terms-of-service"
               className="body-sm text-text-muted hover:text-primary transition-colors"
             >
               {t("footer.terms_of_service")}

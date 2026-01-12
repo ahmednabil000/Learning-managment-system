@@ -26,6 +26,8 @@ const courseSchema = new mongoose.Schema(
       default: "beginner",
       required: true,
     },
+    learning: [String],
+    requirements: [String],
   },
   {
     timestamps: true,

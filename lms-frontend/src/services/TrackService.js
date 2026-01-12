@@ -47,6 +47,12 @@ const TrackService = {
     const response = await api.delete(`/tracks/${trackId}/courses/${courseId}`);
     return response.data;
   },
+  getTopTracks: async (limit = 10) => {
+    const response = await api.get("/tracks/top", {
+      params: { limit },
+    });
+    return response.data;
+  },
 };
 
 export default TrackService;

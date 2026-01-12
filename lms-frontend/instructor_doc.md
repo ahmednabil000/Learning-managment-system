@@ -24,6 +24,7 @@ Retrieves details of a specific instructor by their user ID.
       "_id": "instructor_uuid",
       "firstName": "John",
       "lastName": "Doe",
+      "email": "john.doe@example.com",
       "role": "Instructor",
       "description": "Experienced web developer...",
       "createdAt": "2023-01-01T00:00:00.000Z",
@@ -37,10 +38,12 @@ Retrieves details of a specific instructor by their user ID.
 
 ## 2. Get Instructor Courses
 
-Retrieves a paginated list of courses created by the currently authenticated instructor.
+Retrieves a paginated list of courses created by a specific instructor.
 
-- **Endpoint**: `GET /courses/instructor/my-courses`
-- **Auth Required**: Yes (Instructor)
+- **Endpoint**: `GET /courses/instructor/:instructorId`
+- **Auth Required**: No
+- **Parameters**:
+  - `instructorId` (path): The unique identifier of the instructor.
 - **Query Parameters**:
   - `page` (optional): Page number (default: 1).
   - `limit` (optional): Number of items per page (default: 10).
@@ -78,40 +81,31 @@ Retrieves a paginated list of courses created by the currently authenticated ins
 
 ---
 
-## 3. Get Courses By Instructor ID
+## 3. Update Instructor
 
-Retrieves a paginated list of courses created by a specific instructor (Public).
+Updates the profile details of the authenticated instructor.
 
-- **Endpoint**: `GET /courses/instructor/:instructorId`
-- **Auth Required**: No
-- **Parameters**:
-  - `instructorId` (path): The unique identifier of the instructor.
-- **Query Parameters**:
-  - `page` (optional): Page number (default: 1).
-  - `limit` (optional): Number of items per page (default: 10).
+- **Endpoint**: `PUT /instructors/`
+- **Auth Required**: Yes (Must be logged in)
+- **Request Body**:
+  ```json
+  {
+    "firstName": "John",
+    "lastName": "Doe",
+    "description": "Updated description..."
+  }
+  ```
 - **Response**:
-  - `200 OK`: Returns a paginated list of courses.
+  - `200 OK`: Returns the updated instructor object.
     ```json
     {
-      "courses": [
-        {
-          "_id": "course_uuid",
-          "title": "Course Title",
-          "description": "...",
-          "price": 49.99,
-          "imageUrl": "...",
-          "instructor": "instructor_uuid",
-          "level": "beginner",
-          "createdAt": "..."
-        }
-      ],
-      "page": 1,
-      "limit": 10,
-      "totalItems": 5,
-      "totalPages": 1,
-      "hasPrevPage": false,
-      "hasNextPage": false
+      "_id": "instructor_uuid",
+      "firstName": "John",
+      "lastName": "Doe",
+      "description": "Updated description...",
+      ...
     }
     ```
+  - `401 Unauthorized`: User is not logged in.
   - `404 Not Found`: Instructor not found.
   - `500 Internal Server Error`: Server error.

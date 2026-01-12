@@ -88,6 +88,10 @@ const CourseCard = ({ course, isEnrolled }) => {
             )}
           </div>
 
+          <p className="text-xs text-text-muted font-medium mb-1">
+            {course.instructor?.name || "Instructor"}
+          </p>
+
           <h3 className="text-lg font-bold text-text-main mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
             {course.title}
           </h3>

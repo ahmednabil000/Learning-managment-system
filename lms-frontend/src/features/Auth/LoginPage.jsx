@@ -1,13 +1,21 @@
-import { Link, useLocation, useSearchParams } from "react-router-dom";
-import Button from "../../shared/components/Button";
-import { FaGoogle, FaGithub } from "react-icons/fa";
+import { useState } from "react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
+import { FaGoogle } from "react-icons/fa";
+import Button from "../../shared/components/Button";
 import InputError from "../../shared/components/InputError";
+import AuthService from "../../services/AuthService";
+import useAuthStore from "../../Stores/authStore";
+import notification from "../../utils/notification";
 
 const LoginPage = () => {
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { setToken } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -16,16 +24,39 @@ const LoginPage = () => {
   const callback = searchParams.get("callback");
   const state = callback ? encodeURIComponent(callback) : "";
 
-  const onSubmit = (data) => {
-    console.log(data);
-    // TODO: Implement login logic here
-  };
-
   const loginWithGoogle = () => {
     window.open(
       `${import.meta.env.VITE_API_URL}/auth/google?state=${state}`,
       "_self"
     );
+  };
+
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    try {
+      const response = await AuthService.login({
+        email: data.email,
+        password: data.password,
+      });
+      setToken(response.token, data.rememberMe);
+      notification.success(
+        t("login.success") || "Welcome back! You have successfully logged in."
+      );
+      if (callback) {
+        window.location.href = callback;
+      } else {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error(error);
+      notification.error(
+        error.response?.data?.message ||
+          t("login.error") ||
+          "Unable to log in. Please check your credentials."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -36,6 +67,33 @@ const LoginPage = () => {
             {t("login.title")}
           </h2>
           <p className="mt-2 text-text-muted body-sm">{t("login.subtitle")}</p>
+        </div>
+
+        <div className="mt-8 bg-linear-to-r from-blue-50 to-indigo-50 border border-indigo-100 rounded-xl p-5 shadow-sm relative overflow-hidden group">
+          <div className="relative z-10">
+            <h3 className="font-bold text-indigo-900 mb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
+              <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+              Instructor Demo Access
+            </h3>
+            <div className="space-y-2 text-sm text-indigo-800">
+              <div className="flex items-center justify-between bg-white/60 p-2 rounded-lg border border-indigo-100/50">
+                <span className="text-xs font-semibold text-indigo-600 uppercase">
+                  Email
+                </span>
+                <code className="font-mono font-bold select-all cursor-pointer hover:text-indigo-600 transition-colors">
+                  test@gmail.com
+                </code>
+              </div>
+              <div className="flex items-center justify-between bg-white/60 p-2 rounded-lg border border-indigo-100/50">
+                <span className="text-xs font-semibold text-indigo-600 uppercase">
+                  Password
+                </span>
+                <code className="font-mono font-bold select-all cursor-pointer hover:text-indigo-600 transition-colors">
+                  test
+                </code>
+              </div>
+            </div>
+          </div>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
@@ -121,8 +179,9 @@ const LoginPage = () => {
               type="submit"
               variant="primary"
               className="w-full justify-center"
+              disabled={isLoading}
             >
-              {t("login.submit")}
+              {isLoading ? "Logging in..." : t("login.submit")}
             </Button>
           </div>
         </form>
@@ -140,16 +199,13 @@ const LoginPage = () => {
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="mt-6">
             <Button
               variant="outline"
               className="w-full justify-center"
               onClick={loginWithGoogle}
             >
               <FaGoogle className="mr-2" /> Google
-            </Button>
-            <Button variant="outline" className="w-full justify-center">
-              <FaGithub className="mr-2" /> GitHub
             </Button>
           </div>
         </div>
