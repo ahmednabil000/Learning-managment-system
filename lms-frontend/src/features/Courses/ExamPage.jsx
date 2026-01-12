@@ -8,8 +8,19 @@ import {
   useGetAttempt,
 } from "../../hooks/useExams";
 import Button from "../../shared/components/Button";
-import { FaClock, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+import {
+  FaClock,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaListOl,
+  FaFileAlt,
+  FaPlay,
+  FaCheck,
+  FaTimes,
+  FaTrophy,
+} from "react-icons/fa";
 import notification from "../../utils/notification";
+import ConfirmModal from "../../shared/components/ConfirmModal";
 
 const ExamPage = () => {
   const { courseId } = useParams();
@@ -23,6 +34,7 @@ const ExamPage = () => {
   const [attemptData, setAttemptData] = useState(null);
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const { mutate: startAttempt, isPending: starting } = useStartAttempt({
     onSuccess: (data) => {
@@ -100,11 +112,13 @@ const ExamPage = () => {
 
   // Timer Tick
   useEffect(() => {
-    if (
+    const isActive =
       currentAttempt &&
-      currentAttempt.status === "in-progress" &&
-      timeLeft !== null
-    ) {
+      (currentAttempt.status === "in-progress" ||
+        currentAttempt.status === "started") &&
+      timeLeft !== null;
+
+    if (isActive) {
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1000) {
@@ -119,15 +133,16 @@ const ExamPage = () => {
   }, [currentAttempt, attemptId, endAttemptCmd, timeLeft]);
 
   const handleAnswerChange = (questionId, value) => {
-    if (currentAttempt?.status !== "in-progress") return;
+    const isActive =
+      currentAttempt?.status === "in-progress" ||
+      currentAttempt?.status === "started";
+    if (!isActive) return;
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
     submitAns({ attemptId, data: { questionId, answer: value } });
   };
 
   const handleFinish = () => {
-    if (window.confirm("Are you sure you want to finish the exam?")) {
-      endAttemptCmd(attemptId);
-    }
+    setIsConfirmOpen(true);
   };
 
   const formatTime = (ms) => {
@@ -160,39 +175,81 @@ const ExamPage = () => {
   // Not Started View
   if (!currentAttempt) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="bg-surface p-8 rounded-2xl shadow-lg max-w-lg w-full text-center space-y-6 border border-border">
-          <FaCheckCircle className="mx-auto text-primary text-5xl" />
-          <h1 className="text-3xl font-bold text-text-main">{exam.title}</h1>
-          <p className="text-text-muted">{exam.description}</p>
-          <div className="flex justify-center gap-6 text-sm text-text-main font-bold">
-            <span className="flex items-center gap-2">
-              <FaClock className="text-warning" /> {exam.duration} Minutes
-            </span>
-            <span>{exam.questions?.length || 0} Questions</span>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-64 bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
+        <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative bg-surface p-8 md:p-10 rounded-3xl shadow-2xl max-w-lg w-full text-center space-y-6 border border-border/50 backdrop-blur-sm">
+          <div className="w-20 h-20 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <FaFileAlt size={40} />
           </div>
-          <div className="bg-accent/10 p-4 rounded-lg text-sm text-accent text-left">
-            <p className="font-bold mb-2">Instructions:</p>
-            <ul className="list-disc list-inside space-y-1">
-              <li>Once you start, the timer will not stop.</li>
+
+          <div className="space-y-2">
+            <h1 className="text-3xl md:text-4xl font-black text-text-main tracking-tight">
+              {exam.title}
+            </h1>
+            {exam.description && (
+              <p className="text-text-muted text-lg leading-relaxed">
+                {exam.description}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 py-6">
+            <div className="bg-background p-4 rounded-xl border border-border flex flex-col items-center justify-center gap-1 group hover:border-primary/30 transition-colors">
+              <FaClock className="text-primary text-xl mb-1 group-hover:scale-110 transition-transform" />
+              <span className="font-bold text-text-main">
+                {exam.duration} Min
+              </span>
+              <span className="text-xs text-text-muted uppercase tracking-wider">
+                Duration
+              </span>
+            </div>
+            <div className="bg-background p-4 rounded-xl border border-border flex flex-col items-center justify-center gap-1 group hover:border-primary/30 transition-colors">
+              <FaListOl className="text-primary text-xl mb-1 group-hover:scale-110 transition-transform" />
+              <span className="font-bold text-text-main">
+                {exam.questions?.length || 0}
+              </span>
+              <span className="text-xs text-text-muted uppercase tracking-wider">
+                Questions
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-accent/5 p-5 rounded-xl text-sm text-left border border-accent/10">
+            <p className="font-bold text-accent mb-3 flex items-center gap-2">
+              <FaExclamationCircle /> Important Instructions:
+            </p>
+            <ul className="space-y-2 text-text-muted/80 list-disc list-inside">
+              <li>
+                Once you start, the timer <strong>cannot be paused</strong>.
+              </li>
               <li>Ensure you have a stable internet connection.</li>
-              <li>Do not refresh the page frequently.</li>
+              <li>Do not refresh or close the page.</li>
             </ul>
           </div>
-          <Button
-            variant="primary"
-            fullWidth
-            size="lg"
-            onClick={() =>
-              startAttempt({ examId: exam._id, data: { score: 0 } })
-            }
-            isLoading={starting}
-          >
-            Start Exam
-          </Button>
-          <Button variant="ghost" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() =>
+                startAttempt({ examId: exam._id, data: { score: 0 } })
+              }
+              isLoading={starting}
+              className="flex-2 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow"
+            >
+              <FaPlay className="mr-2 text-xs" /> Start Exam
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -211,29 +268,143 @@ const ExamPage = () => {
     );
 
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="bg-surface p-8 rounded-2xl shadow-lg max-w-md w-full text-center space-y-6 border border-border">
-          <FaCheckCircle className="mx-auto text-success text-6xl" />
-          <h1 className="text-3xl font-bold text-text-main">Exam Completed!</h1>
-          <p className="text-text-muted">
-            You have successfully submitted your exam.
-          </p>
-          <div className="py-6 bg-background/50 rounded-xl">
-            <p className="text-sm text-text-muted uppercase mb-1">Your Score</p>
-            <p className="text-5xl font-black text-primary">
-              {score}{" "}
-              <span className="text-xl text-text-muted font-normal">
-                / {maxScore}
-              </span>
-            </p>
+      <div className="min-h-screen bg-background py-16 px-4">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Score Card */}
+          <div className="bg-surface rounded-3xl shadow-xl overflow-hidden border border-border">
+            <div className="bg-primary/5 p-8 text-center border-b border-border">
+              <div className="inline-flex items-center justify-center p-4 bg-background rounded-full mb-4 shadow-sm text-warning">
+                <FaTrophy size={48} className="drop-shadow-sm" />
+              </div>
+              <h1 className="text-3xl font-black text-text-main mb-2">
+                Exam Completed!
+              </h1>
+              <p className="text-text-muted">
+                You have successfully entered your submission.
+              </p>
+            </div>
+
+            <div className="p-8 text-center bg-background/50">
+              <p className="text-sm font-bold text-text-muted uppercase tracking-widest mb-2">
+                Total Score
+              </p>
+              <div className="flex items-baseline justify-center gap-1 text-primary">
+                <span className="text-6xl font-black">{score}</span>
+                <span className="text-2xl font-medium text-text-muted">
+                  / {maxScore}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-background border-t border-border flex justify-between">
+              <Button
+                variant="ghost"
+                onClick={() => navigate(`/courses/${courseId}`)}
+              >
+                Back to Course
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="primary"
-            fullWidth
-            onClick={() => navigate(`/courses/${courseId}`)}
-          >
-            Return to Course
-          </Button>
+
+          {/* Detailed Breakdown */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-text-main px-2">
+              Detailed Analysis
+            </h2>
+            {exam.questions.map((q, index) => {
+              const userAnswerObj = currentAttempt.answers.find(
+                (a) => a.question === q._id || a.question?._id === q._id
+              );
+              const userAnswer = userAnswerObj?.answer;
+              const isCorrect = userAnswer === q.correctAnswer;
+              const isSkipped = !userAnswer;
+
+              return (
+                <div
+                  key={q._id}
+                  className={`bg-surface rounded-xl border-l-4 p-6 shadow-xs ${
+                    isCorrect
+                      ? "border-l-success border-border"
+                      : "border-l-error border-border"
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex gap-4">
+                      <span
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${
+                          isCorrect
+                            ? "bg-success/10 text-success"
+                            : "bg-error/10 text-error"
+                        }`}
+                      >
+                        {index + 1}
+                      </span>
+                      <div>
+                        <h3 className="font-bold text-lg text-text-main">
+                          {q.question}
+                        </h3>
+                        <span className="text-xs font-semibold text-text-muted">
+                          {q.points} Points
+                        </span>
+                      </div>
+                    </div>
+                    {isCorrect ? (
+                      <FaCheckCircle className="text-success text-xl" />
+                    ) : (
+                      <FaTimes className="text-error text-xl" />
+                    )}
+                  </div>
+
+                  <div className="pl-12 space-y-3">
+                    <div
+                      className={`p-4 rounded-lg border ${
+                        isCorrect
+                          ? "bg-success/5 border-success/20"
+                          : "bg-error/5 border-error/20"
+                      }`}
+                    >
+                      <p className="text-xs font-bold uppercase mb-1 opacity-70">
+                        Your Answer
+                      </p>
+                      <p
+                        className={`font-medium ${
+                          isCorrect ? "text-success-dark" : "text-error-dark"
+                        }`}
+                      >
+                        {userAnswer || (
+                          <span className="italic text-text-muted">
+                            Skipped
+                          </span>
+                        )}
+                      </p>
+                    </div>
+
+                    {!isCorrect && q.correctAnswer && (
+                      <div className="p-4 rounded-lg border border-success/20 bg-success/5">
+                        <p className="text-xs font-bold uppercase mb-1 text-success opacity-70">
+                          Correct Answer
+                        </p>
+                        <p className="font-medium text-success-dark flex items-center gap-2">
+                          <FaCheck size={12} /> {q.correctAnswer}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center pt-8">
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => navigate(`/courses/${courseId}`)}
+              className="px-12"
+            >
+              Return to Course Board
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -259,7 +430,28 @@ const ExamPage = () => {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto pt-24 px-4 space-y-8">
+      <div className="max-w-3xl mx-auto pt-24 px-4 space-y-6">
+        {/* Exam Params Header */}
+        <div className="bg-surface border border-border rounded-2xl p-6 shadow-xs">
+          <h1 className="text-2xl md:text-3xl font-black text-text-main mb-2">
+            {exam.title}
+          </h1>
+          {exam.description && (
+            <p className="text-text-muted leading-relaxed border-l-4 border-primary/20 pl-4 py-1 mb-4">
+              {exam.description}
+            </p>
+          )}
+          <div className="flex items-center gap-6 text-sm font-medium text-text-muted border-t border-border pt-4 mt-2">
+            <div className="flex items-center gap-2">
+              <FaClock className="text-primary" />
+              <span>{exam.duration} Minutes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FaListOl className="text-primary" />
+              <span>{exam.questions?.length || 0} Questions</span>
+            </div>
+          </div>
+        </div>
         {exam.questions?.map((q, index) => (
           <div
             key={q._id}
@@ -322,6 +514,21 @@ const ExamPage = () => {
           </Button>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onCancel={() => setIsConfirmOpen(false)}
+        onConfirm={() => {
+          endAttemptCmd(attemptId);
+          setIsConfirmOpen(false);
+        }}
+        title="Submit Exam?"
+        message="Are you sure you want to submit your exam? You won't be able to change your answers afterwards."
+        confirmText="Yes, Submit"
+        cancelText="Cancel"
+        variant="warning"
+        isLoading={ending}
+      />
     </div>
   );
 };

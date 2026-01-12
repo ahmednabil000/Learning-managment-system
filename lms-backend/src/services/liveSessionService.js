@@ -6,7 +6,10 @@ const { dailyClient } = require("../config/axios");
 exports.createSession = async (
   instructorId,
   courseId,
+  title,
+  description,
   startsAt,
+  duration,
   recordingEnabled = false,
   maxParticipants = null
 ) => {
@@ -21,8 +24,11 @@ exports.createSession = async (
   const session = new LiveSession({
     courseId,
     roomName: room.data.name,
+    title,
+    description,
     status: "scheduled",
     startsAt,
+    duration,
     createdBy: instructorId,
     recordingEnabled,
     maxParticipants,
@@ -38,13 +44,74 @@ exports.getSessionByName = async (name) => {
     throw new Error("Session not found");
   }
   console.log(room);
-  const session = await LiveSession.findOne({ roomName: room.data.name });
+  const session = await LiveSession.findOne({
+    roomName: room.data.name,
+  }).populate("createdBy", "name");
   console.log(session);
   if (!session) {
     throw new Error("Session not found");
   }
 
   return session;
+};
+
+exports.getSessions = async (filters = {}) => {
+  const query = {};
+  if (filters.courseId) {
+    query.courseId = filters.courseId;
+  }
+  return LiveSession.find(query).sort({ startsAt: 1 });
+};
+
+exports.updateSession = async (sessionId, userId, updateData) => {
+  const session = await LiveSession.findById(sessionId);
+  if (!session) {
+    return { statusCode: 404, message: "Session not found" };
+  }
+  if (session.createdBy !== userId) {
+    return {
+      statusCode: 403,
+      message: `Not authorized to update session`,
+    };
+  }
+
+  const allowedUpdates = [
+    "title",
+    "description",
+    "startsAt",
+    "duration",
+    "recordingEnabled",
+    "maxParticipants",
+  ];
+
+  allowedUpdates.forEach((field) => {
+    if (updateData[field] !== undefined) {
+      session[field] = updateData[field];
+    }
+  });
+
+  if (
+    updateData.recordingEnabled !== undefined &&
+    updateData.recordingEnabled !== session.recordingEnabled
+  ) {
+    // We might need to update Daily.co room properties here if recording setting changes
+    // But for now, let's just update the local model as Daily.co rooms are often just "enabled" at creation
+    // To strictly sync, we'd call dailyClient.post('/rooms/' + session.roomName, { properties: ... })
+    try {
+      await dailyClient.post(`/rooms/${session.roomName}`, {
+        properties: {
+          enable_recording: updateData.recordingEnabled ? "cloud" : "none",
+        },
+      });
+    } catch (error) {
+      logger.error(
+        `Failed to update daily room recording setting: ${error.message}`
+      );
+    }
+  }
+
+  await session.save();
+  return { statusCode: 200, data: session };
 };
 
 exports.deleteSessionByName = async (userId, name) => {

@@ -141,7 +141,7 @@ const InstructorDashboard = () => {
     <div className="space-y-6">
       <header>
         <h1 className="heading-l text-text-main">
-          {t("dashboard.welcome", { name: user?.name || "Instructor" })}
+          Welcome, {user?.name || "Instructor"}
           👋
         </h1>
         <p className="text-text-muted mt-2">Here is your analytics overview.</p>

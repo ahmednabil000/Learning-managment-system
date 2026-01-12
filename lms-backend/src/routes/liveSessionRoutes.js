@@ -4,6 +4,7 @@ const authMiddleware = require("../middlewares/authMiddleware");
 const liveSessionController = require("../controllers/liveSessionController");
 
 router.post("/", authMiddleware, liveSessionController.createSession);
+router.get("/", authMiddleware, liveSessionController.getSessions);
 router.get("/:sessionName", liveSessionController.getSessionByName);
 router.delete(
   "/:sessionName",
@@ -39,4 +40,5 @@ router.put(
   authMiddleware,
   liveSessionController.updateSessionStatus
 );
+router.put("/:sessionId", authMiddleware, liveSessionController.updateSession);
 module.exports = router;

@@ -41,7 +41,10 @@ Creates a new live session room with recording capabilities.
 ```json
 {
   "courseId": "string",
+  "title": "string",
+  "description": "string (optional)",
   "startsAt": "ISO 8601 date string",
+  "duration": "number (minutes, optional)",
   "recordingEnabled": "boolean (optional)",
   "maxParticipants": "number (optional)"
 }
@@ -52,7 +55,10 @@ Creates a new live session room with recording capabilities.
 ```json
 {
   "courseId": "course-uuid-123",
+  "title": "Weekly Q&A",
+  "description": "Discussing module 1",
   "startsAt": "2025-12-26T15:00:00.000Z",
+  "duration": 60,
   "recordingEnabled": true,
   "maxParticipants": 50
 }
@@ -98,7 +104,83 @@ Creates a new live session room with recording capabilities.
 
 ---
 
-### 2. Get Live Session by Name
+### 2. Get Sessions
+
+Retrieves a list of live sessions, optionally filtered.
+
+**Endpoint:** `GET /sessions`
+
+**Authentication:** Required (Bearer Token)
+
+**Query Parameters:**
+
+- `courseId` (string, optional) - Filter by course ID
+
+**Request Example:**
+
+```
+GET /sessions?courseId=course-uuid-123
+```
+
+**Success Response:**
+
+**Status Code:** `200 OK`
+
+```json
+[
+  {
+    "_id": "uuid-string",
+    "courseId": "course-uuid-123",
+    "roomName": "unique-room-name",
+    "title": "Weekly Q&A",
+    "status": "scheduled",
+    "startsAt": "2025-12-26T15:00:00.000Z",
+    "duration": 60
+    // ...
+  }
+]
+```
+
+---
+
+### 3. Update Session
+
+Updates details of an existing live session.
+
+**Endpoint:** `PUT /sessions/:sessionId`
+
+**Authentication:** Required (Bearer Token)
+
+**URL Parameters:**
+
+- `sessionId` (string, required) - The unique ID of the session
+
+**Request Body:**
+
+```json
+{
+  "title": "New Title",
+  "description": "New Description",
+  "startsAt": "2025-12-27T15:00:00.000Z",
+  "duration": 90,
+  "recordingEnabled": true,
+  "maxParticipants": 100
+}
+```
+
+**Success Response:**
+
+**Status Code:** `200 OK`
+
+```json
+{
+  // Updated session object
+}
+```
+
+---
+
+### 4. Get Live Session by Name
 
 Retrieves details of a live session by its room name.
 
@@ -531,8 +613,11 @@ GET /sessions/instructor/1234567890abcdef
   _id: String (UUID),
   courseId: String (ref: Course, required),
   roomName: String (unique, required),
+  title: String (required),
+  description: String (optional),
   status: Enum ["scheduled", "live", "ended"] (default: "scheduled", required),
   startsAt: Date (required),
+  duration: Number (minutes, optional),
   endsAt: Date (optional),
   createdBy: String (ref: Instructor, required),
   recordingEnabled: Boolean (default: false),

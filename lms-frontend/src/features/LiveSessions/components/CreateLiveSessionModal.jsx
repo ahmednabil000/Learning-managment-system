@@ -9,7 +9,9 @@ const CreateLiveSessionModal = ({ isOpen, onClose, courseId }) => {
   const { register, handleSubmit, watch, reset } = useForm({
     defaultValues: {
       type: "immediate",
-      // Removed title and description to adhere to API contract
+      title: "",
+      description: "",
+      duration: 60,
       startsAt: new Date().toISOString().slice(0, 16),
       recordingEnabled: false,
     },
@@ -21,6 +23,9 @@ const CreateLiveSessionModal = ({ isOpen, onClose, courseId }) => {
     try {
       const payload = {
         courseId,
+        title: data.title,
+        description: data.description,
+        duration: data.duration,
         recordingEnabled: data.recordingEnabled,
         // If immediate, use current time. If scheduled, use selected time.
         // API requires ISO 8601 string.
@@ -57,7 +62,10 @@ const CreateLiveSessionModal = ({ isOpen, onClose, courseId }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-6 space-y-6 max-h-[80vh] overflow-y-auto"
+        >
           <div className="flex gap-4 p-1 bg-background rounded-xl border border-border">
             <label className="flex-1 cursor-pointer">
               <input
@@ -101,6 +109,47 @@ const CreateLiveSessionModal = ({ isOpen, onClose, courseId }) => {
                 ? "This will create a live session room that students can join immediately."
                 : "This will schedule a session for a future date. Students will see it in their upcoming sessions."}
             </p>
+
+            <div>
+              <label className="text-sm font-bold text-text-main mb-2 block">
+                Session Title *
+              </label>
+              <input
+                {...register("title", { required: "Title is required" })}
+                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none"
+                placeholder="e.g., Weekly Q&A Session"
+              />
+              <InputError error={createSessionMutation.error} />
+            </div>
+
+            <div>
+              <label className="text-sm font-bold text-text-main mb-2 block">
+                Description
+              </label>
+              <textarea
+                {...register("description")}
+                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none min-h-[100px]"
+                placeholder="What will this session cover?"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-bold text-text-main mb-2 block">
+                Duration (minutes)
+              </label>
+              <select
+                {...register("duration", { min: 1 })}
+                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none"
+              >
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="45">45 minutes</option>
+                <option value="60">60 minutes (1 hour)</option>
+                <option value="90">90 minutes (1.5 hours)</option>
+                <option value="120">120 minutes (2 hours)</option>
+                <option value="180">180 minutes (3 hours)</option>
+              </select>
+            </div>
 
             {sessionType === "scheduled" && (
               <div>

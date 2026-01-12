@@ -99,9 +99,14 @@ export const useSubmitAnswer = (options = {}) => {
 };
 
 export const useEndAttempt = (options = {}) => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ExamsService.endAttempt,
-    onSuccess: options.onSuccess,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(["exam-attempt"]);
+      queryClient.invalidateQueries(["available-exam"]);
+      if (options.onSuccess) options.onSuccess(data);
+    },
     onError: options.onError,
   });
 };

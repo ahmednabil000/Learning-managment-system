@@ -60,7 +60,7 @@ const TrackDetailsPage = () => {
               <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight leading-tight">
                 {track.title}
               </h1>
-              <p className="text-sm lg:text-base text-white/90 leading-relaxed max-w-2xl line-clamp-2">
+              <p className="text-sm lg:text-base text-white/90 leading-relaxed max-w-2xl">
                 {track.description}
               </p>
 

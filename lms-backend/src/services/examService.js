@@ -101,7 +101,7 @@ module.exports.removeExam = async (userId, examId) => {
       message: "You are not authorized to remove this exam",
     };
   }
-  await exam.remove();
+  await exam.deleteOne();
   return {
     statusCode: 200,
     message: "Exam removed successfully",
@@ -109,11 +109,16 @@ module.exports.removeExam = async (userId, examId) => {
 };
 
 module.exports.addExamAttempt = async (userId, examId, attemptData) => {
-  const userAttempt = await ExamAttempt.findOne({ user: userId, exam: examId });
+  const userAttempt = await ExamAttempt.findOne({
+    user: userId,
+    exam: examId,
+  }).populate("exam");
+
   if (userAttempt) {
     return {
-      statusCode: 400,
-      message: "User has already attempted this exam",
+      statusCode: 200,
+      message: "Exam attempt retrieved successfully",
+      data: userAttempt,
     };
   }
   const exam = await Exam.findById(examId);
@@ -162,10 +167,14 @@ module.exports.addAnswerToAttempt = async (
       message: "Exam attempt is already ended",
     };
   }
-  if (attempt.exam.startDate + attempt.exam.duration * 60 * 1000 < Date.now()) {
+  // Check if time is up based on *attempt* start time + duration
+  const startTime = new Date(attempt.createdAt).getTime();
+  const durationMs = attempt.exam.duration * 60 * 1000;
+  // Use a small buffer (e.g., 2 minutes) for network latency/grace period if desired
+  if (startTime + durationMs + 2 * 60 * 1000 < Date.now()) {
     return {
       statusCode: 400,
-      message: "Exam has ended",
+      message: "Time is up for this exam",
     };
   }
   const question = await ExamQuestion.findById(questionId);
@@ -181,23 +190,37 @@ module.exports.addAnswerToAttempt = async (
       message: "You are not authorized to add an answer to this exam attempt",
     };
   }
-  const existingAnswerIndex = attempt.answers.findIndex(
-    (a) => a.question.toString() === question._id.toString()
+
+  // Use atomic updates to avoid VersionError on rapid saves
+  const updateResult = await ExamAttempt.updateOne(
+    { _id: examAttemptId, "answers.question": question._id },
+    { $set: { "answers.$.answer": answer } }
   );
 
-  if (existingAnswerIndex !== -1) {
-    attempt.answers[existingAnswerIndex].answer = answer;
-  } else {
-    attempt.answers.push({
-      question: question._id,
-      answer,
-    });
+  if (updateResult.matchedCount === 0) {
+    // If not matched, push new answer
+    await ExamAttempt.updateOne(
+      { _id: examAttemptId },
+      {
+        $push: {
+          answers: {
+            question: question._id,
+            answer,
+          },
+        },
+      }
+    );
   }
-  await attempt.save();
+
+  // Fetch updated attempt to return
+  const updatedAttempt = await ExamAttempt.findById(examAttemptId).populate(
+    "exam"
+  );
+
   return {
     statusCode: 201,
     message: "Answer added to exam attempt successfully",
-    data: attempt,
+    data: updatedAttempt,
   };
 };
 
@@ -261,17 +284,30 @@ module.exports.getCourseAvailableExam = async (userId, courseId) => {
   const exam = await Exam.findOne({
     course: courseId,
     status: { $in: ["started", "not-started"] },
-  });
+  }).populate("questions");
+
   if (!exam) {
     return {
       statusCode: 404,
       message: "No available exam",
     };
   }
+
+  // Check for existing attempt
+  const attempt = await ExamAttempt.findOne({
+    exam: exam._id,
+    user: userId,
+  });
+
+  const examData = exam.toObject();
+  if (attempt) {
+    examData.userAttempt = attempt;
+  }
+
   return {
     statusCode: 200,
     message: "Course available exam",
-    data: exam,
+    data: examData,
   };
 };
 

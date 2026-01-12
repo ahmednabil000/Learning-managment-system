@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DailyIframe from "@daily-co/daily-js";
 import {
@@ -18,6 +18,7 @@ import {
   FaTimes,
   FaCircle,
   FaUserShield,
+  FaClock,
 } from "react-icons/fa";
 
 const LiveSessionPage = () => {
@@ -28,6 +29,7 @@ const LiveSessionPage = () => {
   const [callObject, setCallObject] = useState(null);
   const [isJoined, setIsJoined] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null); // in seconds
   const containerRef = useRef(null);
 
   const startRecordingMutation = useStartRecording();
@@ -37,7 +39,7 @@ const LiveSessionPage = () => {
   const updateStatusMutation = useUpdateStatus();
 
   // Updated to use createdBy based on new API model
-  const isOwner = session?.createdBy === user?.id;
+  const isOwner = (session?.createdBy?._id || session?.createdBy) === user?.id;
 
   // Join Flow
   const handleJoin = async () => {
@@ -94,7 +96,7 @@ const LiveSessionPage = () => {
     }
   };
 
-  const handleLeave = async () => {
+  const handleLeave = useCallback(async () => {
     if (!callObject) return;
 
     // Leave the Daily call first to ensure clean UI capability
@@ -123,7 +125,14 @@ const LiveSessionPage = () => {
     }
 
     navigate(-1);
-  };
+  }, [
+    callObject,
+    isOwner,
+    session,
+    updateStatusMutation,
+    deleteSessionMutation,
+    navigate,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -132,6 +141,44 @@ const LiveSessionPage = () => {
       }
     };
   }, [callObject]);
+
+  // Timer Logic
+  useEffect(() => {
+    if (!session || !session.duration || !session.startsAt) return;
+
+    const calculateTimeLeft = () => {
+      // Calculate end time: startsAt + duration (minutes)
+      const startTime = new Date(session.startsAt).getTime();
+      const endTime = startTime + session.duration * 60 * 1000;
+      const now = Date.now();
+      const diff = Math.max(0, Math.floor((endTime - now) / 1000));
+      return diff;
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const interval = setInterval(() => {
+      const remaining = calculateTimeLeft();
+      setTimeLeft(remaining);
+
+      if (remaining <= 0 && isOwner && isJoined) {
+        clearInterval(interval);
+        handleLeave(); // Auto leave if time is up and user is owner
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [session, isOwner, isJoined, handleLeave]);
+
+  const formatRecRemaining = (seconds) => {
+    if (seconds === null) return "--:--:--";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, "0")}:${m
+      .toString()
+      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
   if (isLoading)
     return (
@@ -178,15 +225,25 @@ const LiveSessionPage = () => {
               Room: {session.roomName}
             </span>
           </div>
+          {timeLeft !== null && (
+            <div className="flex items-center gap-2 text-primary font-mono text-xl font-bold bg-primary/5 px-4 py-2 rounded-lg mb-2">
+              <FaClock />
+              <span>{formatRecRemaining(timeLeft)}</span>
+              {isOwner && (
+                <span className="text-xs font-sans text-text-muted ml-2">
+                  (Auto-end)
+                </span>
+              )}
+            </div>
+          )}
           <h1 className="text-3xl md:text-4xl font-black text-text-main tracking-tight">
-            {session.course?.title
-              ? `Live: ${session.course.title}`
-              : "Live Session"}
+            {session.title || "Live Session"}
           </h1>
-          <p className="text-text-muted mt-2 max-w-2xl">
-            {/* Fallback description since API removed it */}
-            Join the interactive session for real-time discussion and learning.
-          </p>
+          {session.description && (
+            <p className="text-text-muted mt-2 max-w-2xl">
+              {session.description}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -291,7 +348,7 @@ const LiveSessionPage = () => {
           <p className="text-text-main font-bold">Session hosted by</p>
           <p className="text-text-muted">
             {/* Updated to createdBy */}
-            Instructor User ID: {session.createdBy}
+            {session.createdBy?.name || session.createdBy || "Unknown"}
           </p>
         </div>
 

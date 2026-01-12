@@ -13,6 +13,7 @@ import {
   FaCalendarAlt,
   FaClipboardList,
   FaCheck,
+  FaVideo,
 } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import Button from "../../shared/components/Button";
@@ -23,8 +24,10 @@ import {
 import { useAssignmentsByCourse } from "../../hooks/useAssignments";
 import { useCourseBlogs } from "../../hooks/useCourseBlogs";
 import { useCourseAvailableExam } from "../../hooks/useExams";
+import { useSessions } from "../../hooks/useLiveSessions";
 import CourseCommentsSection from "./components/CourseCommentsSection";
 import VideoModal from "../../shared/components/VideoModal";
+import LiveSessionBanner from "./components/LiveSessionBanner";
 
 const CourseDetailsPage = () => {
   const { courseId } = useParams();
@@ -33,6 +36,7 @@ const CourseDetailsPage = () => {
   const { data: course, isLoading, isError } = useCourse(courseId);
   const { data: assignments = [] } = useAssignmentsByCourse(courseId);
   const { data: allBlogs = [] } = useCourseBlogs(courseId, { limit: 1000 });
+  const { data: sessions = [] } = useSessions({ courseId });
   // Exam Logic
   const { data: examData } = useCourseAvailableExam(courseId);
   const [examState, setExamState] = useState({ status: null, countdown: null });
@@ -317,6 +321,19 @@ const CourseDetailsPage = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Live Session Notification */}
+        {sessions && sessions.length > 0 && (
+          <LiveSessionBanner
+            session={sessions.find(
+              (s) =>
+                (s.courseId === courseId ||
+                  s.course === courseId ||
+                  s.course?._id === courseId) &&
+                (s.status === "live" || s.status === "scheduled")
+            )}
+          />
+        )}
+
         {/* Exam Notification */}
         {examData && examState.status && examState.status !== "ended" && (
           <div

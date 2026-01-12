@@ -4,18 +4,29 @@ const logger = require("../config/logger");
 module.exports.createSession = async (req, res) => {
   try {
     logger.info("Start create live session");
-    const { courseId, startsAt, recordingEnabled, maxParticipants } = req.body;
+    const {
+      courseId,
+      title,
+      description,
+      startsAt,
+      duration,
+      recordingEnabled,
+      maxParticipants,
+    } = req.body;
 
-    if (!courseId || !startsAt) {
+    if (!courseId || !startsAt || !title) {
       return res
         .status(400)
-        .json({ error: "courseId and startsAt are required" });
+        .json({ error: "courseId, title, and startsAt are required" });
     }
 
     const session = await LiveSessionService.createSession(
       req.user.id,
       courseId,
+      title,
+      description,
       startsAt,
+      duration,
       recordingEnabled,
       maxParticipants
     );
@@ -164,6 +175,8 @@ module.exports.getSessionsByInstructor = async (req, res) => {
   }
 };
 
+// ... (previous code)
+
 module.exports.updateSessionStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -181,5 +194,42 @@ module.exports.updateSessionStatus = async (req, res) => {
     res
       .status(500)
       .json({ error: error.message || "Failed to update session status" });
+  }
+};
+
+module.exports.getSessions = async (req, res) => {
+  try {
+    const filters = {};
+    if (req.query.courseId) {
+      filters.courseId = req.query.courseId;
+    }
+    const sessions = await LiveSessionService.getSessions(filters);
+    res.status(200).json(sessions);
+  } catch (error) {
+    logger.error(error.message);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch sessions" });
+  }
+};
+
+module.exports.updateSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const updateData = req.body;
+    const result = await LiveSessionService.updateSession(
+      sessionId,
+      req.user.id,
+      updateData
+    );
+    if (result.statusCode === 200) {
+      return res.status(200).json(result.data);
+    }
+    res.status(result.statusCode).json({ message: result.message });
+  } catch (error) {
+    logger.error(error.message);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to update session" });
   }
 };

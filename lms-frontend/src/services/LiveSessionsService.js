@@ -14,6 +14,7 @@ const LiveSessionsService = {
   },
 
   // Assuming GET /sessions exists for listing, based on standard REST practices matching the unified resource
+  // List sessions (e.g., filtered by courseId)
   getSessions: async (params) => {
     const response = await api.get("/sessions", { params });
     return response.data;
@@ -45,21 +46,16 @@ const LiveSessionsService = {
   },
 
   getSessionToken: async (sessionName) => {
-    // No request body required as per new docs
     const response = await api.post(`/sessions/${sessionName}/token`);
     return response.data;
   },
 
-  // Undocumented but implied update endpoints for "Edit" functionality
-  // Using generic /sessions/:id or /sessions/:sessionName pattern?
-  // Docs don't specify update, so we'll guess standard REST PUT /sessions/:id for now or disable editing
   updateSession: async (id, data) => {
     const response = await api.put(`/sessions/${id}`, data);
     return response.data;
   },
 
   updateSessionStatus: async (id, status) => {
-    // Trying to adhere to the pattern, though strictly not in docs
     const response = await api.put(`/sessions/${id}/status`, { status });
     return response.data;
   },

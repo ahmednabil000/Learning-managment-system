@@ -77,11 +77,18 @@ const ExamForm = ({ initialData = {}, onSubmit, onCancel, isLoading }) => {
           <label className="block text-sm font-bold text-text-main mb-1">
             Duration (minutes)
           </label>
-          <input
-            type="number"
+          <select
             {...register("duration", { required: true, min: 1 })}
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50"
-          />
+          >
+            <option value="15">15 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="45">45 minutes</option>
+            <option value="60">60 minutes (1 hour)</option>
+            <option value="90">90 minutes (1.5 hours)</option>
+            <option value="120">120 minutes (2 hours)</option>
+            <option value="180">180 minutes (3 hours)</option>
+          </select>
         </div>
       </div>
 

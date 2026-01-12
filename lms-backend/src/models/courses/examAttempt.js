@@ -24,8 +24,8 @@ const examAttemptSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["started", "ended"],
-      default: "started",
+      enum: ["in-progress", "ended"],
+      default: "in-progress",
     },
     answers: [
       {

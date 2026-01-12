@@ -8,9 +8,8 @@ const LiveSessionBanner = ({ session }) => {
 
   const isLive = session.status === "live";
   const isScheduled = session.status === "scheduled";
-  const scheduledDate = new Date(session.scheduledAt);
+  const scheduledDate = new Date(session.startsAt);
   const now = new Date();
-  const isUpcoming = scheduledDate > now && isScheduled;
   const canJoin = isLive || (isScheduled && scheduledDate <= now);
 
   // Only show live or scheduled sessions
@@ -92,7 +91,7 @@ const LiveSessionBanner = ({ session }) => {
                 </Button>
               </a>
             ) : (
-              <Link to={`/live-session/${session._id}`}>
+              <Link to={`/live-session/${session.roomName}`}>
                 <Button
                   variant="primary"
                   className="w-full !bg-white !text-red-600 hover:!bg-gray-100 font-bold shadow-xl flex items-center justify-center gap-2 py-3 animate-pulse"

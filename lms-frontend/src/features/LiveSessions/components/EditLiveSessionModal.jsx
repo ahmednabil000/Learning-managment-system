@@ -17,6 +17,9 @@ const EditLiveSessionModal = ({ isOpen, onClose, session }) => {
   useEffect(() => {
     if (session) {
       reset({
+        title: session.title,
+        description: session.description,
+        duration: session.duration,
         startsAt: session.startsAt
           ? new Date(session.startsAt).toISOString().slice(0, 16)
           : "",
@@ -29,6 +32,9 @@ const EditLiveSessionModal = ({ isOpen, onClose, session }) => {
       {
         id: session._id,
         data: {
+          title: data.title,
+          description: data.description,
+          duration: data.duration,
           startsAt: new Date(data.startsAt).toISOString(),
         },
       },
@@ -60,11 +66,50 @@ const EditLiveSessionModal = ({ isOpen, onClose, session }) => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <p className="text-sm text-text-muted">
-            Updating schedule for:{" "}
+            Updating:{" "}
             <span className="font-bold text-text-main">
-              {session.roomName || session.course?.title || "Session"}
+              {session.title || session.roomName || "Session"}
             </span>
           </p>
+
+          <div>
+            <label className="block text-sm font-bold text-text-main mb-2">
+              Title
+            </label>
+            <input
+              {...register("title", { required: "Title is required" })}
+              className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none"
+            />
+            <InputError error={errors.title} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-text-main mb-2">
+              Description
+            </label>
+            <textarea
+              {...register("description")}
+              className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none min-h-[80px]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-text-main mb-2">
+              Duration (minutes)
+            </label>
+            <select
+              {...register("duration", { min: 1 })}
+              className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none"
+            >
+              <option value="15">15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes (1 hour)</option>
+              <option value="90">90 minutes (1.5 hours)</option>
+              <option value="120">120 minutes (2 hours)</option>
+              <option value="180">180 minutes (3 hours)</option>
+            </select>
+          </div>
 
           <div>
             <label className="block text-sm font-bold text-text-main mb-2">

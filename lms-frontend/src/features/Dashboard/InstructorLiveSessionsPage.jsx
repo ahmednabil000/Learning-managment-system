@@ -136,9 +136,15 @@ const InstructorLiveSessionsPage = () => {
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold text-text-main mb-2">
-                      {session.course?.title || "Session Metadata Unavailable"}
+                    <h3 className="text-xl font-bold text-text-main mb-1">
+                      {session.title || session.roomName}
                     </h3>
+
+                    {session.description && (
+                      <p className="text-text-muted mb-3 line-clamp-2 text-sm">
+                        {session.description}
+                      </p>
+                    )}
 
                     <div className="flex flex-wrap items-center gap-4 text-sm text-text-muted mb-4">
                       {session.course && (
@@ -179,30 +185,25 @@ const InstructorLiveSessionsPage = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2 min-w-fit">
-                    {session.status === "live" && (
-                      <Link to={`/live-session/${session.roomName}`}>
-                        <Button
-                          variant="primary"
-                          className="flex items-center gap-2 animate-pulse"
-                        >
-                          <FaVideo /> Join Live
-                        </Button>
-                      </Link>
-                    )}
-
-                    <Link to={`/session/${session._id}`}>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Link to={`/live-session/${session.roomName}`}>
                       <Button
-                        variant="secondary"
-                        className="flex items-center gap-2"
+                        variant={
+                          session.status === "scheduled" ? "primary" : "primary"
+                        }
+                        size="sm"
+                        className="flex items-center gap-2 animate-pulse"
                       >
-                        <FaEye /> View Details
+                        <FaVideo />{" "}
+                        {session.status === "scheduled"
+                          ? "Start Session"
+                          : "Join Live"}
                       </Button>
                     </Link>
-
                     {session.status === "scheduled" && (
                       <Button
                         variant="secondary"
+                        size="sm"
                         onClick={() => setSessionToEdit(session)}
                         className="flex items-center gap-2"
                       >
@@ -211,22 +212,13 @@ const InstructorLiveSessionsPage = () => {
                     )}
 
                     <Button
-                      variant="secondary"
-                      onClick={() => setSessionToUpdateStatus(session)}
-                      className="flex items-center gap-2"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSessionToDelete(session)}
+                      className="flex items-center gap-2 text-red-500 hover:bg-red-50"
                     >
-                      <FaExchangeAlt /> Status
+                      <FaTrash /> Delete
                     </Button>
-
-                    {session.status !== "live" && (
-                      <Button
-                        variant="danger"
-                        onClick={() => setSessionToDelete(session)}
-                        className="flex items-center gap-2"
-                      >
-                        <FaTrash /> Delete
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -241,7 +233,9 @@ const InstructorLiveSessionsPage = () => {
         onClose={() => setSessionToDelete(null)}
         onConfirm={handleDeleteSession}
         title="Delete Live Session"
-        message={`Are you sure you want to delete "${sessionToDelete?.title}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${
+          sessionToDelete?.title || sessionToDelete?.roomName
+        }"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
       />
