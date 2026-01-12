@@ -1,6 +1,6 @@
 const Question = require("../../models/assessments/question");
 const UserEnroll = require("../../models/UserEnroll");
-const Lecture = require("../../models/courses/Lecture");
+const Lecture = require("../../models/courses/lecture");
 const Course = require("../../models/courses/course");
 exports.getQuestions = async (page, pageCount, search) => {
   return await Question.find({ title: { $regex: search } })

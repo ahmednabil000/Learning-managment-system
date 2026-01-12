@@ -1,5 +1,5 @@
 const Comment = require("../models/courses/comment");
-const Lecture = require("../models/courses/Lecture");
+const Lecture = require("../models/courses/lecture");
 
 module.exports.createComment = async (userId, commentData) => {
   const parentComment = await Comment.findById(commentData.parentComment);

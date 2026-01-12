@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Lecture = require("../models/courses/Lecture");
+const Lecture = require("../models/courses/lecture");
 
 exports.createLecture = async ({ title, description, courseId, order }) => {
   console.log("start create new lecture");
