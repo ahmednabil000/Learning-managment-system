@@ -4,7 +4,6 @@ const courseValidator = require("../validations/courses/courseValidator");
 const logger = require("../config/logger");
 exports.getCourseById = async (req, res) => {
   try {
-    console.log(req.user.id);
     const course = await courseService.getCourseById(
       req.params.id,
       req.user?.id
