@@ -80,7 +80,7 @@ const EditLiveSessionModal = ({ isOpen, onClose, session }) => {
               {...register("title", { required: "Title is required" })}
               className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none"
             />
-            <InputError error={errors.title} />
+            <InputError message={errors.title?.message} />
           </div>
 
           <div>
@@ -120,7 +120,7 @@ const EditLiveSessionModal = ({ isOpen, onClose, session }) => {
               {...register("startsAt", { required: "Start time is required" })}
               className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none"
             />
-            <InputError error={errors.startsAt} />
+            <InputError message={errors.startsAt?.message} />
           </div>
 
           <div className="flex gap-3 pt-4">

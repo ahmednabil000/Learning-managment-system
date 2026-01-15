@@ -393,6 +393,11 @@ const TrackFormPage = ({ mode = "create" }) => {
                   {...register("discount", { min: 0, max: 100 })}
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50"
                 />
+                {errors.discount && (
+                  <p className="text-error text-xs mt-1">
+                    {errors.discount.message}
+                  </p>
+                )}
               </div>
               {mode === "edit" && (
                 <div className="flex items-center gap-3">

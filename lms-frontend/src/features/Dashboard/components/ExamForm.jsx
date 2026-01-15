@@ -89,6 +89,9 @@ const ExamForm = ({ initialData = {}, onSubmit, onCancel, isLoading }) => {
             <option value="120">120 minutes (2 hours)</option>
             <option value="180">180 minutes (3 hours)</option>
           </select>
+          {errors.duration && (
+            <p className="text-error text-xs mt-1">{errors.duration.message}</p>
+          )}
         </div>
       </div>
 

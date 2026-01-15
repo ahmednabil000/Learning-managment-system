@@ -170,14 +170,14 @@ const CreateCourseBlogPage = () => {
                 </p>
               </div>
             )}
+            <input
+              type="hidden"
+              {...register("thumbnail", { required: "Thumbnail is required" })}
+            />
           </div>
           {errors.thumbnail && (
-            // Needs validation registration
-            <p className="text-error text-sm">Thumbnail is required</p>
+            <p className="text-error text-sm">{errors.thumbnail.message}</p>
           )}
-          {/* Note: I didn't register validation for thumbnail explicitly in useForm default props, but logic handles it. 
-              Ideally should use a hidden input or register it. I'll stick to logic for now or add a hidden input.
-          */}
         </div>
 
         {/* Rich Text Editor */}

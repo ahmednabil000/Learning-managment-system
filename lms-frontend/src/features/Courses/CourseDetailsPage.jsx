@@ -289,12 +289,12 @@ const CourseDetailsPage = () => {
                           </span>
                         </div>
                         <span className="text-sm text-text-muted line-through mt-0.5">
-                          ${course.price}
+                          ${course.price.toFixed(2)}
                         </span>
                       </div>
                     ) : (
                       <span className="text-3xl font-bold text-primary">
-                        ${course.price}
+                        ${course.price.toFixed(2)}
                       </span>
                     )}
                   </div>

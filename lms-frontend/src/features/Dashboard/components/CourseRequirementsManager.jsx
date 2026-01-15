@@ -31,9 +31,15 @@ const CourseRequirementsManager = ({
   const removeRequirement = useRemoveRequirement();
   const updateRequirement = useUpdateRequirement();
 
+  const [learningError, setLearningError] = useState("");
+  const [requirementError, setRequirementError] = useState("");
+
   // Learning Items Handlers
   const handleAddLearning = () => {
-    if (!newLearning.trim()) return;
+    if (!newLearning.trim()) {
+      setLearningError("Learning item cannot be empty");
+      return;
+    }
     addLearningItem.mutate(
       { id: courseId, data: { learningItem: newLearning } },
       {
@@ -73,7 +79,10 @@ const CourseRequirementsManager = ({
 
   // Requirements Handlers
   const handleAddRequirement = () => {
-    if (!newRequirement.trim()) return;
+    if (!newRequirement.trim()) {
+      setRequirementError("Requirement cannot be empty");
+      return;
+    }
     addRequirement.mutate(
       { id: courseId, data: { requirementItem: newRequirement } },
       {
@@ -122,14 +131,24 @@ const CourseRequirementsManager = ({
         <h3 className="heading-s mb-4 text-text-main">What You Will Learn</h3>
 
         <div className="flex gap-2 mb-4">
-          <input
-            type="text"
-            value={newLearning}
-            onChange={(e) => setNewLearning(e.target.value)}
-            placeholder="e.g. Master React Hooks"
-            className="flex-1 px-4 py-2 border border-border rounded-lg bg-background text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50"
-            onKeyDown={(e) => e.key === "Enter" && handleAddLearning()}
-          />
+          <div className="flex-1">
+            <input
+              type="text"
+              value={newLearning}
+              onChange={(e) => {
+                setNewLearning(e.target.value);
+                if (e.target.value.trim()) setLearningError("");
+              }}
+              placeholder="e.g. Master React Hooks"
+              className={`w-full px-4 py-2 border rounded-lg bg-background text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                learningError ? "border-error" : "border-border"
+              }`}
+              onKeyDown={(e) => e.key === "Enter" && handleAddLearning()}
+            />
+            {learningError && (
+              <p className="text-error text-xs mt-1">{learningError}</p>
+            )}
+          </div>
           <Button
             onClick={handleAddLearning}
             disabled={addLearningItem.isPending}
@@ -219,14 +238,24 @@ const CourseRequirementsManager = ({
         </h3>
 
         <div className="flex gap-2 mb-4">
-          <input
-            type="text"
-            value={newRequirement}
-            onChange={(e) => setNewRequirement(e.target.value)}
-            placeholder="e.g. Basic JavaScript knowledge"
-            className="flex-1 px-4 py-2 border border-border rounded-lg bg-background text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50"
-            onKeyDown={(e) => e.key === "Enter" && handleAddRequirement()}
-          />
+          <div className="flex-1">
+            <input
+              type="text"
+              value={newRequirement}
+              onChange={(e) => {
+                setNewRequirement(e.target.value);
+                if (e.target.value.trim()) setRequirementError("");
+              }}
+              placeholder="e.g. Basic JavaScript knowledge"
+              className={`w-full px-4 py-2 border rounded-lg bg-background text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                requirementError ? "border-error" : "border-border"
+              }`}
+              onKeyDown={(e) => e.key === "Enter" && handleAddRequirement()}
+            />
+            {requirementError && (
+              <p className="text-error text-xs mt-1">{requirementError}</p>
+            )}
+          </div>
           <Button
             onClick={handleAddRequirement}
             disabled={addRequirement.isPending}

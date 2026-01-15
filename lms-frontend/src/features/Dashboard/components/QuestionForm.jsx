@@ -88,6 +88,9 @@ const QuestionForm = ({
             {...register("points", { required: "Points are required", min: 1 })}
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50"
           />
+          {errors.points && (
+            <p className="text-error text-xs mt-1">{errors.points.message}</p>
+          )}
         </div>
       </div>
 
@@ -114,6 +117,13 @@ const QuestionForm = ({
               </Button>
             </div>
           ))}
+          {errors.options && (
+            <p className="text-error text-xs mt-1">
+              {errors.options.root
+                ? errors.options.root.message
+                : "All options are required"}
+            </p>
+          )}
           <Button
             type="button"
             variant="outline"
@@ -135,6 +145,11 @@ const QuestionForm = ({
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary/50"
               placeholder="Copy the correct option text here"
             />
+            {errors.correctAnswer && (
+              <p className="text-error text-xs mt-1">
+                {errors.correctAnswer.message}
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -151,6 +166,11 @@ const QuestionForm = ({
             <option value="True">True</option>
             <option value="False">False</option>
           </select>
+          {errors.correctAnswer && (
+            <p className="text-error text-xs mt-1">
+              {errors.correctAnswer.message}
+            </p>
+          )}
         </div>
       )}
 

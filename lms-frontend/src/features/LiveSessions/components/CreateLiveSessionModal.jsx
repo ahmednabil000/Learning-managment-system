@@ -6,7 +6,13 @@ import InputError from "../../../shared/components/InputError";
 
 const CreateLiveSessionModal = ({ isOpen, onClose, courseId }) => {
   const createSessionMutation = useCreateSession();
-  const { register, handleSubmit, watch, reset } = useForm({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
       type: "immediate",
       title: "",
@@ -119,7 +125,15 @@ const CreateLiveSessionModal = ({ isOpen, onClose, courseId }) => {
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none"
                 placeholder="e.g., Weekly Q&A Session"
               />
-              <InputError error={createSessionMutation.error} />
+              <InputError message={errors.title?.message} />
+              {createSessionMutation.isError && (
+                <InputError
+                  message={
+                    createSessionMutation.error?.response?.data?.message ||
+                    "Failed to create session"
+                  }
+                />
+              )}
             </div>
 
             <div>
@@ -131,6 +145,7 @@ const CreateLiveSessionModal = ({ isOpen, onClose, courseId }) => {
                 className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none min-h-[100px]"
                 placeholder="What will this session cover?"
               />
+              <InputError message={errors.description?.message} />
             </div>
 
             <div>
@@ -163,6 +178,7 @@ const CreateLiveSessionModal = ({ isOpen, onClose, courseId }) => {
                   })}
                   className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none"
                 />
+                <InputError message={errors.startsAt?.message} />
               </div>
             )}
 
