@@ -234,7 +234,7 @@ exports.deleteCourse = async (id) => {
     throw new Error("Course not found");
   }
 
-  await course.remove();
+  await course.deleteOne();
   return course;
 };
 
